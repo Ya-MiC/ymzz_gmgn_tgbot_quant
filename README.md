@@ -30,6 +30,8 @@
 
 沒有部署網址。靜態頁就是預覽。
 
+本機研究服務是另一個行程：`PYTHONPATH=src python3 -m ymzz_quant.api`，瀏覽器開 `http://127.0.0.1:8765/`。這一頁會把設定送到 `/api/backtest` 重算。Streamlit 仍是行程內介面，不是這支 API。契約與啟動方式在 `docs/local_research_service.md`。
+
 ## 怎麼重跑
 
 ```bash
@@ -41,7 +43,7 @@ python3 scripts/build_preview.py
 python3 -m streamlit run app/dashboard.py
 ```
 
-這次測試是 **17 passed**。合成價格只存在測試裡，並標成排除在真實市場數字之外。
+本機研究服務加上之後，`PYTHONPATH=src python3 -m pytest -q tests` 是 **29 passed**。合成價格只存在測試裡，並標成排除在真實市場數字之外。WIF 已收盤研究的數字仍以 `results/LATEST_backtest.md` 為準，沒有為了新的 BTC/ETH 頁面重調參數。API 練習紀錄是 `results/2026-11-10_123416_KST_api_exercise.md`。
 
 ## 規則（v0）
 

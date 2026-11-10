@@ -22,6 +22,11 @@ from ymzz_quant.service import load_bars, load_named_scenarios, polymarket_summa
 st.set_page_config(page_title="晏銘湛箴_gmgn_tgbot量化策略", layout="wide")
 st.title("晏銘湛箴_gmgn_tgbot量化策略")
 st.caption("紙上回測。模擬損益，價格是公開歷史資料。沒有錢包、沒有下單、沒有實盤。")
+st.info(
+    "這一頁在 Streamlit 行程裡直接呼叫引擎，不是獨立部署的 API。"
+    "完整的本機研究服務是 `PYTHONPATH=src python3 -m ymzz_quant.api`，頁面在 frontend/index.html。"
+    "preview/index.html 是先前那次研究的靜態快照，不會重算。"
+)
 
 badges = st.columns(6)
 badges[0].markdown("**模擬損益·真實價格**")

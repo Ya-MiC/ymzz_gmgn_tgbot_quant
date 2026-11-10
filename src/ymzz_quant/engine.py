@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from ymzz_quant.costs import CostScenario
 from ymzz_quant.data_adapters import Bar, fmt_ts
 from ymzz_quant.indicators import atr_percent, relative_volume, rsi_wilder
+from ymzz_quant.margin import account_equity, financing_cost, leverage_allowed, margin_level, posted_and_borrowed
 from ymzz_quant.splits import linear_quantile, split_bounds, split_labels
 
 
@@ -50,6 +51,32 @@ class RunResult:
         }
 
 
+def _validate_run_controls(scenario: CostScenario) -> None:
+    if not 0 < scenario.initial_cash_usd <= 10 + 1e-9:
+        raise ValueError("initial cash must be positive and at most $10")
+    if scenario.proposed_per_trade_loss_budget_usd <= 0:
+        raise ValueError("loss budget must be positive")
+    if scenario.proposed_per_trade_loss_budget_usd > scenario.initial_cash_usd + 1e-9:
+        raise ValueError("loss budget cannot exceed equity")
+    if scenario.proposed_max_drawdown_usd is not None and scenario.proposed_max_drawdown_usd > scenario.initial_cash_usd + 1e-9:
+        raise ValueError("drawdown proposal cannot exceed equity")
+    if scenario.proposed_max_drawdown_frac <= 0 or scenario.proposed_max_drawdown_frac > 1:
+        raise ValueError("drawdown fraction must be inside (0, 1]")
+    if scenario.execution_delay_bars < 1:
+        raise ValueError("execution delay must be at least 1 closed bar")
+    if min(scenario.rsi_period, scenario.atr_period, scenario.rv_period) < 2:
+        raise ValueError("indicator period")
+    if scenario.instrument_mode not in {"spot", "hypothetical_assumed_margin"}:
+        raise ValueError("instrument_mode")
+    if scenario.leverage > 2 + 1e-12 or scenario.leverage <= 0 or not leverage_allowed(scenario.leverage):
+        raise ValueError("paper leverage must be 1, 1.5, or 2; values above 2 are rejected")
+    if scenario.instrument_mode == "spot" and abs(scenario.leverage - 1.0) > 1e-9:
+        raise ValueError(
+            "spot and GMGN swap have no native margin; leverage must stay 1. "
+            "hypothetical_assumed_margin is a separate assumed scenario, not a real perpetual backtest."
+        )
+
+
 def run_backtest(
     bars: list[Bar],
     scenario: CostScenario,
@@ -61,8 +88,7 @@ def run_backtest(
 ) -> RunResult:
     if synthetic_signal_override is not None and not synthetic:
         raise ValueError("synthetic_signal_override is excluded from real-market runs")
-    if scenario.initial_cash_usd != 10:
-        raise ValueError("initial cash must stay $10")
+    _validate_run_controls(scenario)
     if scenario.execution_mode not in {"manual_tg_next_open", "resting_stop_research"}:
         raise ValueError("execution mode")
     n = len(bars)
@@ -71,9 +97,9 @@ def run_backtest(
     lows = [b.low for b in bars]
     volumes = [b.volume for b in bars]
     stamps = [b.ts for b in bars]
-    rsi = rsi_wilder(closes, 14, stamps, expected_interval)
-    atr = atr_percent(highs, lows, closes, 14, stamps, expected_interval)
-    rv = relative_volume(volumes, 20, stamps, expected_interval)
+    rsi = rsi_wilder(closes, scenario.rsi_period, stamps, expected_interval)
+    atr = atr_percent(highs, lows, closes, scenario.atr_period, stamps, expected_interval)
+    rv = relative_volume(volumes, scenario.rv_period, stamps, expected_interval)
     labels = split_labels(stamps) if stamps else []
     bounds = split_bounds(stamps) if stamps else {}
     train_atr = [atr[i] for i, lab in enumerate(labels) if lab == "train" and atr[i] is not None]
@@ -102,9 +128,13 @@ def run_backtest(
     fees_paid = 0.0
     chain_paid = 0.0
     clamp_events = 0
+    financing_paid = 0.0
+
+    def borrowed_now() -> float:
+        return float(position["borrowed"]) if position else 0.0
 
     def mark(i: int) -> float:
-        return cash + qty * closes[i]
+        return account_equity(cash, qty, closes[i], borrowed_now())
 
     def record_equity(i: int) -> None:
         nonlocal peak, dd_paused
@@ -190,17 +220,56 @@ def run_backtest(
                 exited_once = True
                 pending = None
 
+        if (
+            position is not None
+            and scenario.instrument_mode == "hypothetical_assumed_margin"
+            and i >= position["entry_fill_index"]
+        ):
+            cost = financing_cost(
+                position["borrowed"],
+                qty * closes[i],
+                scenario.assumed_borrow_rate_per_day,
+                scenario.assumed_funding_rate_per_day,
+                expected_interval,
+            )
+            if cost > 0:
+                if cash >= cost:
+                    cash -= cost
+                else:
+                    position["borrowed"] += cost - max(cash, 0.0)
+                    cash = 0.0
+                financing_paid += cost
+                position["financing"] = position.get("financing", 0.0) + cost
+
         record_equity(i)
 
-        if i == n - 1:
-            break
+        if i + scenario.execution_delay_bars >= n:
+            continue
+
+        if (
+            position is not None
+            and pending is None
+            and scenario.instrument_mode == "hypothetical_assumed_margin"
+            and i > position["entry_fill_index"]
+        ):
+            level = margin_level(cash, qty, closes[i], position["borrowed"])
+            if level is not None and level <= scenario.maintenance_margin_frac + 1e-15:
+                pending = {
+                    "side": "sell",
+                    "fill_index": i + scenario.execution_delay_bars,
+                    "signal_index": i,
+                    "signal_close": closes[i],
+                    "reason": "hypothetical_liquidation_next_open",
+                    "same_bar_sl": False,
+                    "liquidation": True,
+                }
 
         if position is not None and pending is None and scenario.execution_mode == "manual_tg_next_open":
             reason = _manual_exit_reason(closes[i], position, rsi[i], scenario)
             if reason:
                 pending = {
                     "side": "sell",
-                    "fill_index": i + 1,
+                    "fill_index": i + scenario.execution_delay_bars,
                     "signal_index": i,
                     "signal_close": closes[i],
                     "reason": reason,
@@ -238,7 +307,7 @@ def run_backtest(
                     qty_plan = size["notional"] / plan_px
                     pending = {
                         "side": "buy",
-                        "fill_index": i + 1,
+                        "fill_index": i + scenario.execution_delay_bars,
                         "signal_index": i,
                         "signal_close": closes[i],
                         "qty": qty_plan,
@@ -250,7 +319,7 @@ def run_backtest(
     open_unrealized = None
     if position is not None:
         last = n - 1
-        mtm = qty * closes[last]
+        mtm = account_equity(cash, qty, closes[last], position["borrowed"]) - cash
         open_unrealized = {
             "status": "OPEN_UNREALIZED",
             "entry_signal_utc": fmt_ts(bars[position["signal_index"]].ts)["utc"],
@@ -325,11 +394,18 @@ def run_backtest(
         "balance_clamp_events": clamp_events,
         "min_cash": min((row["cash"] for row in equity), default=cash),
         "min_equity": min((row["equity"] for row in equity), default=final_equity),
-        "leverage_used": 1,
+        "leverage_used": scenario.leverage if scenario.instrument_mode == "hypothetical_assumed_margin" else 1.0,
+        "instrument_mode": scenario.instrument_mode,
+        "assumed_financing_usd": financing_paid,
+        "hypothetical_margin_is_real_perp": False,
+        "rsi_period": scenario.rsi_period,
+        "atr_period": scenario.atr_period,
+        "rv_period": scenario.rv_period,
+        "execution_delay_bars": scenario.execution_delay_bars,
         "same_bar_sl_first_count": sum(1 for t in closed if t.get("same_bar_sl")),
         "execution_residual_entry_mean": _mean([t["entry_residual"] for t in trades if "entry_residual" in t]),
         "execution_residual_exit_mean": _mean([t["exit_residual"] for t in closed if t.get("exit_residual") is not None]),
-        "proposed_controls_not_user_specified": True,
+        "proposed_controls_not_user_specified": not scenario.request_controls_are_user_supplied,
         "train_trade_count": sum(1 for t in trades if t.get("segment") == "train"),
         "validation_trade_count": sum(1 for t in trades if t.get("segment") == "validation"),
         "heldout_trade_count": sum(1 for t in trades if t.get("segment") == "heldout"),
@@ -427,7 +503,8 @@ def _size_notional(scenario: CostScenario, cash: float, atr_pct: float) -> dict:
     buying = cash - scenario.reserve_usd
     if buying <= chain:
         return {"notional": 0.0, "reason": "insufficient_funds_after_reserve"}
-    by_cash = (buying - chain) / (1 + buy_var)
+    leverage = scenario.leverage if scenario.instrument_mode == "hypothetical_assumed_margin" else 1.0
+    by_cash = (buying - chain) / ((1.0 / leverage) + buy_var)
     notional = min(by_budget, by_cash)
     if notional < scenario.min_notional_usd:
         reason = "cost_or_stop_exceeds_proposed_budget" if by_budget <= by_cash else "insufficient_funds_after_reserve"
@@ -453,7 +530,9 @@ def _execute_buy(i, bars, pending, scenario: CostScenario, cash, dataset_key, la
     gmgn = notional * scenario.gmgn_fee_rate_per_side
     pool_fee = notional * pool
     chain = scenario.chain_fee_usd_per_side
-    debit = notional + gmgn + pool_fee + chain
+    leverage = scenario.leverage if scenario.instrument_mode == "hypothetical_assumed_margin" else 1.0
+    posted, borrowed = posted_and_borrowed(notional, leverage)
+    debit = posted + gmgn + pool_fee + chain
     if debit > cash + 1e-9 or cash - debit < scenario.reserve_usd - 1e-6:
         return cash, 0.0, None, {
             **fmt_ts(bars[i].ts),
@@ -463,6 +542,7 @@ def _execute_buy(i, bars, pending, scenario: CostScenario, cash, dataset_key, la
             "atr_pct": pending["atr_pct"],
             "rv": None,
         }
+    cash_before_entry = cash
     cash -= debit
     sl = fill * (1 - scenario.k_sl * pending["atr_pct"])
     tp = fill * (1 + scenario.k_tp * pending["atr_pct"])
@@ -474,6 +554,12 @@ def _execute_buy(i, bars, pending, scenario: CostScenario, cash, dataset_key, la
         "entry_fill": fill,
         "qty": qty,
         "cost_basis": debit,
+        "notional": notional,
+        "posted_cash": posted,
+        "borrowed": borrowed,
+        "leverage": leverage,
+        "cash_before_entry": cash_before_entry,
+        "financing": 0.0,
         "entry_fees": gmgn + pool_fee,
         "entry_chain": chain,
         "entry_gmgn": gmgn,
@@ -516,10 +602,13 @@ def _resting_exit(i, bars, position, scenario: CostScenario):
 
 
 def _execute_sell(bars, i, pending, scenario, cash, qty, position):
+    raw = bars[i].open
+    if pending.get("liquidation"):
+        raw = raw * (1 - scenario.liquidation_penalty_frac)
     return _settle_exit(
         bars=bars,
         fill_index=i,
-        raw_price=bars[i].open,
+        raw_price=raw,
         reason=pending["reason"],
         signal_index=pending["signal_index"],
         signal_close=pending["signal_close"],
@@ -541,10 +630,14 @@ def _settle_exit(bars, fill_index, raw_price, reason, signal_index, signal_close
     pool_fee = gross * pool
     chain = scenario.chain_fee_usd_per_side
     net = gross - gmgn - pool_fee - chain
+    borrowed = float(position.get("borrowed") or 0.0)
     clamped = False
     status = "CLOSED"
     note = "OHLCV 不能證明可賣出；成交價是模型，不是保證。"
-    if cash + net < -1e-9:
+    if reason == "hypothetical_liquidation_next_open":
+        status = "HYPOTHETICAL_LIQUIDATION"
+        note = "假設保證金模擬的強制平倉。不是交易所永續合約的真實強平，也沒有補倉。"
+    if borrowed == 0 and cash + net < -1e-9:
         # Paying the modeled exit would make cash negative. Do not invent proceeds.
         clamped = True
         status = "COSTS_EXCEED_CASH_MARKED_ZERO"
@@ -556,9 +649,20 @@ def _settle_exit(bars, fill_index, raw_price, reason, signal_index, signal_close
         realized = -position["cost_basis"]
         note = "模型出場成本超過持有現金。不記虛構賣出收入，倉位回收價值記 0。這不是可賣性證明。"
     else:
-        cash = cash + net
-        fill_booked = fill
-        realized = net - position["cost_basis"]
+        new_cash = cash + net - borrowed
+        if new_cash < -1e-9:
+            clamped = True
+            status = "BANKRUPTCY_FLOOR_NO_TOPUP"
+            note = "假設保證金模擬在還款後現金會小於 0。現金記 0，沒有外部補倉。"
+            cash = 0.0
+            fill_booked = fill
+        else:
+            cash = new_cash
+            fill_booked = fill
+        if position.get("cash_before_entry") is not None:
+            realized = cash - position["cash_before_entry"]
+        else:
+            realized = net - borrowed - position["cost_basis"]
     entry_signal = fmt_ts(bars[position["signal_index"]].ts)
     entry_fill_ts = fmt_ts(bars[position["entry_fill_index"]].ts)
     exit_signal = fmt_ts(bars[signal_index].ts)

@@ -258,6 +258,112 @@ def _ohlc_sane(bar: Bar) -> bool:
     return True
 
 
+def parse_kraken_ohlc_payload(payload: dict) -> list[Bar]:
+    result = payload.get("result")
+    if not isinstance(result, dict):
+        raise ValueError("Kraken OHLC payload missing result")
+    keys = [key for key in result if key != "last"]
+    if len(keys) != 1:
+        raise ValueError("Kraken OHLC payload must contain one pair")
+    bars = []
+    for row in result[keys[0]]:
+        if not isinstance(row, (list, tuple)) or len(row) < 7:
+            raise ValueError("Kraken OHLC row is too short")
+        ts, open_, high, low, close, _vwap, volume = row[:7]
+        bars.append(
+            Bar(
+                ts=int(ts),
+                open=float(open_),
+                high=float(high),
+                low=float(low),
+                close=float(close),
+                volume=float(volume),
+            )
+        )
+    return bars
+
+
+def load_kraken_ohlcv_files(paths: list[Path], expected_interval: int) -> SeriesLoad:
+    """Kraken OHLC timestamps are candle opens. Unclosed bars are dropped."""
+    if not paths:
+        raise FileNotFoundError("no Kraken OHLC files")
+    closed_by_ts: dict[int, list[tuple[Bar, int, str]]] = {}
+    open_by_ts: dict[int, list[tuple[int | None, str]]] = {}
+    sources = []
+    digest = hashlib.sha256()
+    for path in paths:
+        if not path.exists():
+            raise FileNotFoundError(path)
+        raw = path.read_bytes()
+        digest.update(raw)
+        sources.append(str(path))
+        fetched = fetched_at_unix(path)
+        for bar in parse_kraken_ohlc_payload(json.loads(raw)):
+            if bar_is_closed(bar.ts, expected_interval, fetched):
+                closed_by_ts.setdefault(bar.ts, []).append((bar, fetched, str(path)))
+            else:
+                open_by_ts.setdefault(bar.ts, []).append((fetched, str(path)))
+    dropped_unclosed = []
+    for ts in sorted(open_by_ts):
+        if ts in closed_by_ts:
+            continue
+        fetches = [item[0] for item in open_by_ts[ts] if item[0] is not None]
+        open_label = fmt_ts(ts)
+        close_label = fmt_ts(ts + expected_interval)
+        dropped_unclosed.append(
+            {
+                "ts": ts,
+                "utc": open_label["utc"],
+                "kst": open_label["kst"],
+                "close_ts": ts + expected_interval,
+                "close_utc": close_label["utc"],
+                "close_kst": close_label["kst"],
+                "fetched_at_unix": min(fetches) if fetches else None,
+                "fetched_at_utc": (
+                    datetime.fromtimestamp(min(fetches), timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ") if fetches else None
+                ),
+                "interval_seconds": expected_interval,
+                "sources": [item[1] for item in open_by_ts[ts]],
+                "reason": "unclosed_at_fetch",
+            }
+        )
+    dedup: list[Bar] = []
+    duplicates = 0
+    invalid = 0
+    for ts in sorted(closed_by_ts):
+        observations = closed_by_ts[ts]
+        first = observations[0][0]
+        for extra, _fetched, _source in observations[1:]:
+            duplicates += 1
+            if extra != first:
+                raise ValueError(f"conflicting duplicate timestamp {ts}")
+        if not _ohlc_sane(first):
+            invalid += 1
+            continue
+        dedup.append(first)
+    gaps = []
+    limit = expected_interval * 1.5
+    for prev, nxt in zip(dedup, dedup[1:]):
+        delta = nxt.ts - prev.ts
+        if delta > limit:
+            gaps.append(
+                {
+                    "after_ts": prev.ts,
+                    "before_ts": nxt.ts,
+                    "missing_seconds": delta - expected_interval,
+                }
+            )
+    return SeriesLoad(
+        bars=dedup,
+        gaps=gaps,
+        duplicate_timestamps=duplicates,
+        invalid_bars=invalid,
+        sources=sources,
+        sha256=digest.hexdigest(),
+        dropped_unclosed=dropped_unclosed,
+    )
+
+
 def fmt_ts(ts: int) -> dict:
     utc = datetime.fromtimestamp(ts, timezone.utc)
     kst = utc.astimezone(KST)

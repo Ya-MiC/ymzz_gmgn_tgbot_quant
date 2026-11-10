@@ -11,6 +11,7 @@ from ymzz_quant.costs import CostScenario, load_scenarios
 from ymzz_quant.data_adapters import (
     closed_probability_points,
     fetched_at_unix,
+    load_kraken_ohlcv_files,
     load_ohlcv_files,
     parse_polymarket_prices,
     parse_pool_trades,
@@ -25,7 +26,8 @@ CONFIG = ROOT / "config" / "scenarios.json"
 def load_bars(dataset_key: str, root: Path | None = None):
     root = root or ROOT
     spec = DATASETS[dataset_key]
-    loaded = load_ohlcv_files(dataset_paths(dataset_key, root), spec["expected_interval_seconds"])
+    loader = load_kraken_ohlcv_files if spec.get("format") == "kraken_ohlc" else load_ohlcv_files
+    loaded = loader(dataset_paths(dataset_key, root), spec["expected_interval_seconds"])
     meta = {
         **spec,
         "gaps": loaded.gaps,

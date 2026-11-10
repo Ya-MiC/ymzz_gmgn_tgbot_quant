@@ -1,0 +1,12 @@
+{
+  "url": "https://api.kraken.com/0/public/OHLC?pair=XBTUSD&interval=1440",
+  "pair": "XBTUSD",
+  "interval_minutes": 1440,
+  "fetched_at_utc": "2026-11-10T03:23:59Z",
+  "fetched_at_kst": "2026-11-10T12:23:59+0900",
+  "sha256": "835cab853eeec0841e5aecbb395cb3679294f3541b79df12e0358d43108ea787",
+  "provider": "kraken_public_rest",
+  "api_key_used": false,
+  "library": null,
+  "note": "Raw response. The daily candle that is still open at fetched_at is dropped by the loader, not here."
+}

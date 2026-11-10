@@ -6,6 +6,36 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
+
+def _kraken(symbol: str, pair: str, result_key: str, interval_label: str, seconds: int, filename: str) -> dict:
+    base, quote = symbol.split("/")
+    return {
+        "role": "major_spot_not_meme",
+        "role_zh": "主流現貨，不是 meme，也不是 GMGN 池",
+        "symbol": symbol,
+        "chain": "offchain_spot",
+        "network": "kraken_spot",
+        "marketplace": "kraken_spot",
+        "dex": None,
+        "pool": None,
+        "base_token": base,
+        "quote_token": quote,
+        "quote_symbol": quote,
+        "unit": f"{quote} per {base}",
+        "instrument": "spot",
+        "pair": pair,
+        "kraken_result_key": result_key,
+        "files": [f"data/cache/{filename}"],
+        "expected_interval_seconds": seconds,
+        "interval_label": interval_label,
+        "format": "kraken_ohlc",
+        "source_template": f"https://api.kraken.com/0/public/OHLC?pair={pair}&interval={seconds // 60}",
+        "bias": "Kraken public spot OHLC. Not a Solana meme pool and not a substitute for a missing meme timeframe.",
+        "bias_zh": "Kraken 公開現貨 OHLC。不是 Solana meme 池，也不能拿來代替缺漏的 meme 周期。",
+        "margin": "unsupported_no_native_margin_in_this_spot_feed",
+    }
+
+
 DATASETS = {
     "wif_daily": {
         "role": "selected_survivor_meme",
@@ -73,7 +103,16 @@ DATASETS = {
         "source_template": "https://api.geckoterminal.com/api/v2/networks/solana/pools/{pool}/ohlcv/day?aggregate=1&limit=1000&currency=usd",
         "bias": "Mature POPCAT/SOL. A newer POPCAT/USDC pool was rejected for age, not for return.",
         "bias_zh": "較早建立的 POPCAT/SOL。另一個較新的 POPCAT/USDC 因池齡被排除，不是因為報酬。",
+        "marketplace": "geckoterminal_pool",
+        "network": "solana",
+        "quote_symbol": "SOL",
+        "unit": "USD mark from GeckoTerminal currency=usd",
+        "instrument": "spot_pool_swap",
     },
+    "btc_usd_1d": _kraken("BTC/USD", "XBTUSD", "XXBTZUSD", "1d", 86400, "kraken_ohlc_XBTUSD_1440.json"),
+    "btc_usd_1h": _kraken("BTC/USD", "XBTUSD", "XXBTZUSD", "1h", 3600, "kraken_ohlc_XBTUSD_60.json"),
+    "eth_usd_1d": _kraken("ETH/USD", "ETHUSD", "XETHZUSD", "1d", 86400, "kraken_ohlc_ETHUSD_1440.json"),
+    "eth_usd_1h": _kraken("ETH/USD", "ETHUSD", "XETHZUSD", "1h", 3600, "kraken_ohlc_ETHUSD_60.json"),
 }
 
 

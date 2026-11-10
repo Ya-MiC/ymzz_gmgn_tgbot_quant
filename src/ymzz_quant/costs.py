@@ -43,6 +43,18 @@ class CostScenario:
     atr_quantile_low: float = 0.20
     atr_quantile_high: float = 0.90
     min_notional_usd: float = 1.0
+    rsi_period: int = 14
+    atr_period: int = 14
+    rv_period: int = 20
+    execution_delay_bars: int = 1
+    leverage: float = 1.0
+    instrument_mode: str = "spot"
+    assumed_borrow_rate_per_day: float = 0.0
+    assumed_funding_rate_per_day: float = 0.0
+    maintenance_margin_frac: float = 0.25
+    liquidation_penalty_frac: float = 0.0
+    proposed_max_drawdown_usd: float | None = None
+    request_controls_are_user_supplied: bool = False
 
     @property
     def chain_fee_usd_per_side(self) -> float:
@@ -83,9 +95,10 @@ class CostScenario:
             "sol_usd_source": self.sol_usd_source,
             "initial_cash_usd": self.initial_cash_usd,
             "proposed_per_trade_loss_budget_usd": self.proposed_per_trade_loss_budget_usd,
-            "proposed_per_trade_loss_budget_is_user_specified": False,
+            "proposed_per_trade_loss_budget_is_user_specified": self.request_controls_are_user_supplied,
             "proposed_max_drawdown_frac": self.proposed_max_drawdown_frac,
-            "proposed_max_drawdown_is_user_specified": False,
+            "proposed_max_drawdown_usd": self.proposed_max_drawdown_usd,
+            "proposed_max_drawdown_is_user_specified": self.request_controls_are_user_supplied,
             "execution_mode": self.execution_mode,
             "require_known_pool_fee": self.require_known_pool_fee,
             "require_historical_sellability": self.require_historical_sellability,
@@ -106,8 +119,27 @@ class CostScenario:
             "rsi_high": self.rsi_high,
             "rsi_exit": self.rsi_exit,
             "rv_min": self.rv_min,
-            "indicators": ["RSI14", "ATR14_pct", "relative_volume_20"],
-            "leverage": 1,
+            "rsi_period": self.rsi_period,
+            "atr_period": self.atr_period,
+            "rv_period": self.rv_period,
+            "execution_delay_bars": self.execution_delay_bars,
+            "leverage": self.leverage,
+            "instrument_mode": self.instrument_mode,
+            "assumed_borrow_rate_per_day": self.assumed_borrow_rate_per_day,
+            "assumed_funding_rate_per_day": self.assumed_funding_rate_per_day,
+            "maintenance_margin_frac": self.maintenance_margin_frac,
+            "liquidation_penalty_frac": self.liquidation_penalty_frac,
+            "hypothetical_margin_is_real_perp": False,
+            "decision_indicators": [
+                f"RSI{self.rsi_period}",
+                f"ATR{self.atr_period}_pct",
+                f"relative_volume_{self.rv_period}",
+            ],
+            "indicators": [
+                f"RSI{self.rsi_period}",
+                f"ATR{self.atr_period}_pct",
+                f"relative_volume_{self.rv_period}",
+            ],
             "martingale": False,
             "averaging_down": False,
             "replenishment": False,

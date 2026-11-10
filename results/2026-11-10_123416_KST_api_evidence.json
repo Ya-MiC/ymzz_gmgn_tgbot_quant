@@ -1,0 +1,265 @@
+{
+  "recorded_at_kst": "2026-11-10 12:34:16 KST",
+  "service": "http://127.0.0.1:8765",
+  "deployed": false,
+  "rsi_points_that_differ_14_vs_19": 706,
+  "rsi_points_compared": 706,
+  "runs": [
+    {
+      "name": "btc_rsi14",
+      "http": 200,
+      "ok": true,
+      "symbol": "BTC/USD",
+      "marketplace": "kraken_spot",
+      "network": "kraken_spot",
+      "quote": "USD",
+      "unit": "USD per BTC",
+      "pair": "XBTUSD",
+      "interval": "1d",
+      "sha256": "835cab853eeec0841e5aecbb395cb3679294f3541b79df12e0358d43108ea787",
+      "fetched_at_utc": "2026-11-10T03:23:59Z",
+      "closed_bars": 720,
+      "dropped_unclosed": 1,
+      "window": [
+        "2024-11-20T00:00:00Z",
+        "2026-11-09T00:00:00Z"
+      ],
+      "rsi_period": 14,
+      "instrument_mode": "spot",
+      "leverage_used": 1.0,
+      "final_equity_usd": 9.852011573829785,
+      "realized_pnl": -0.14798842617021535,
+      "closed_trade_count": 1,
+      "request_sha256": "0db5d02c68d5d4594db88568c6dd81b7b46042d131937f91445dce8ab284bd2f",
+      "config_sha256": "f2ca734400c6761e3c262b473daab065e2244a30533713c4014e4f46e6ffef67",
+      "trade": {
+        "status": "CLOSED",
+        "entry_signal_utc": "2025-02-24T00:00:00Z",
+        "entry_fill_utc": "2025-02-25T00:00:00Z",
+        "exit_fill_utc": "2025-02-27T00:00:00Z",
+        "entry_fill_px": 91809.00319999998,
+        "exit_fill_px": 83837.63029999999,
+        "qty": 1.7781372363221733e-05,
+        "realized_pnl": -0.14798842617021535,
+        "gmgn_fees": 0.006246476389219673,
+        "exit_reason": "stop_on_close_next_open"
+      },
+      "hypothetical_margin_is_real_perp": false,
+      "decision_indicators": [
+        "RSI14",
+        "ATR14_pct",
+        "relative_volume_20"
+      ]
+    },
+    {
+      "name": "btc_rsi19",
+      "http": 200,
+      "ok": true,
+      "symbol": "BTC/USD",
+      "marketplace": "kraken_spot",
+      "network": "kraken_spot",
+      "quote": "USD",
+      "unit": "USD per BTC",
+      "pair": "XBTUSD",
+      "interval": "1d",
+      "sha256": "835cab853eeec0841e5aecbb395cb3679294f3541b79df12e0358d43108ea787",
+      "fetched_at_utc": "2026-11-10T03:23:59Z",
+      "closed_bars": 720,
+      "dropped_unclosed": 1,
+      "window": [
+        "2024-11-20T00:00:00Z",
+        "2026-11-09T00:00:00Z"
+      ],
+      "rsi_period": 19,
+      "instrument_mode": "spot",
+      "leverage_used": 1.0,
+      "final_equity_usd": 9.852011573829785,
+      "realized_pnl": -0.14798842617021535,
+      "closed_trade_count": 1,
+      "request_sha256": "039962ee30d179fd81a3dd6f7ba415dc6ac072e5a802bf3dc15c0219ba34b92e",
+      "config_sha256": "2c3a3dce2e802837dd074531c4f5fd9ce7070cd4b78abffd064a79cce8668f95",
+      "trade": {
+        "status": "CLOSED",
+        "entry_signal_utc": "2025-02-24T00:00:00Z",
+        "entry_fill_utc": "2025-02-25T00:00:00Z",
+        "exit_fill_utc": "2025-02-27T00:00:00Z",
+        "entry_fill_px": 91809.00319999998,
+        "exit_fill_px": 83837.63029999999,
+        "qty": 1.7781372363221733e-05,
+        "realized_pnl": -0.14798842617021535,
+        "gmgn_fees": 0.006246476389219673,
+        "exit_reason": "stop_on_close_next_open"
+      },
+      "hypothetical_margin_is_real_perp": false,
+      "decision_indicators": [
+        "RSI19",
+        "ATR14_pct",
+        "relative_volume_20"
+      ]
+    },
+    {
+      "name": "eth_rsi14",
+      "http": 200,
+      "ok": true,
+      "symbol": "ETH/USD",
+      "marketplace": "kraken_spot",
+      "network": "kraken_spot",
+      "quote": "USD",
+      "unit": "USD per ETH",
+      "pair": "ETHUSD",
+      "interval": "1d",
+      "sha256": "385b40bf47193ca0c4f898e57af018d777e3ae6cac70b4b16deb396dfeccce52",
+      "fetched_at_utc": "2026-11-10T03:24:00Z",
+      "closed_bars": 720,
+      "dropped_unclosed": 1,
+      "window": [
+        "2024-11-20T00:00:00Z",
+        "2026-11-09T00:00:00Z"
+      ],
+      "rsi_period": 14,
+      "instrument_mode": "spot",
+      "leverage_used": 1.0,
+      "final_equity_usd": 9.874575616263737,
+      "realized_pnl": -0.12542438373626297,
+      "closed_trade_count": 1,
+      "request_sha256": "52d64ad6b7fffd8134930ced2f89df728a9aa4ee0f639cad53844fd3db423fc5",
+      "config_sha256": "dfabb1a30cdf4617347ea3bb4b254563c7fb28183f77e2570ba379dff2e2d134",
+      "trade": {
+        "status": "CLOSED",
+        "entry_signal_utc": "2025-01-09T00:00:00Z",
+        "entry_fill_utc": "2025-01-10T00:00:00Z",
+        "exit_fill_utc": "2025-02-03T00:00:00Z",
+        "entry_fill_px": 3228.4564,
+        "exit_fill_px": 2860.7918,
+        "qty": 0.0003302005089074519,
+        "realized_pnl": -0.12542438373626297,
+        "gmgn_fees": 0.0040213457090075705,
+        "exit_reason": "stop_on_close_next_open"
+      },
+      "hypothetical_margin_is_real_perp": false,
+      "decision_indicators": [
+        "RSI14",
+        "ATR14_pct",
+        "relative_volume_20"
+      ]
+    },
+    {
+      "name": "eth_hypothetical_2x",
+      "http": 200,
+      "ok": true,
+      "symbol": "ETH/USD",
+      "marketplace": "kraken_spot",
+      "network": "kraken_spot",
+      "quote": "USD",
+      "unit": "USD per ETH",
+      "pair": "ETHUSD",
+      "interval": "1d",
+      "sha256": "385b40bf47193ca0c4f898e57af018d777e3ae6cac70b4b16deb396dfeccce52",
+      "fetched_at_utc": "2026-11-10T03:24:00Z",
+      "closed_bars": 720,
+      "dropped_unclosed": 1,
+      "window": [
+        "2024-11-20T00:00:00Z",
+        "2026-11-09T00:00:00Z"
+      ],
+      "rsi_period": 14,
+      "instrument_mode": "hypothetical_assumed_margin",
+      "leverage_used": 2.0,
+      "final_equity_usd": 9.874575616263737,
+      "realized_pnl": -0.12542438373626297,
+      "closed_trade_count": 1,
+      "request_sha256": "b8ad153ccd6178b786b52ca2d2c24bd364221eeae8604944b7871ae0f3a80a87",
+      "config_sha256": "e634c7dd2ccf0f94674c6908404145fcd667d8c9c01860f601cf95888e6ddf0a",
+      "trade": {
+        "status": "CLOSED",
+        "entry_signal_utc": "2025-01-09T00:00:00Z",
+        "entry_fill_utc": "2025-01-10T00:00:00Z",
+        "exit_fill_utc": "2025-02-03T00:00:00Z",
+        "entry_fill_px": 3228.4564,
+        "exit_fill_px": 2860.7918,
+        "qty": 0.0003302005089074519,
+        "realized_pnl": -0.12542438373626297,
+        "gmgn_fees": 0.0040213457090075705,
+        "exit_reason": "stop_on_close_next_open"
+      },
+      "hypothetical_margin_is_real_perp": false,
+      "decision_indicators": [
+        "RSI14",
+        "ATR14_pct",
+        "relative_volume_20"
+      ]
+    },
+    {
+      "name": "wif_conservative",
+      "http": 200,
+      "ok": true,
+      "symbol": "$WIF / SOL",
+      "marketplace": "geckoterminal_pool",
+      "network": "solana",
+      "quote": "SOL",
+      "unit": "USD mark from GeckoTerminal currency=usd",
+      "pair": "EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx",
+      "interval": "1d",
+      "sha256": "96e234f0a14433c0d5dc3c6220c93c348100167dbea92210a037d2949383b17a",
+      "fetched_at_utc": "2026-11-10T02:30:31Z",
+      "closed_bars": 363,
+      "dropped_unclosed": 1,
+      "window": [
+        "2025-11-12T00:00:00Z",
+        "2026-11-09T00:00:00Z"
+      ],
+      "rsi_period": 14,
+      "instrument_mode": "spot",
+      "leverage_used": 1.0,
+      "final_equity_usd": 10.0,
+      "realized_pnl": 0.0,
+      "closed_trade_count": 0,
+      "request_sha256": "f3948ad50333f46a10f89b6141a79238710c66dec9ff39ffd513341171e110fb",
+      "config_sha256": "1832b504d08bf957d4369ba924db0e90a5abf06505f810c23ddabf3d2ccef47e",
+      "trade": null,
+      "hypothetical_margin_is_real_perp": false,
+      "decision_indicators": [
+        "RSI14",
+        "ATR14_pct",
+        "relative_volume_20"
+      ]
+    },
+    {
+      "name": "btc_15m",
+      "http": 400,
+      "ok": false,
+      "errors": [
+        {
+          "field": "interval",
+          "message": "送出的是 15m，這份資料實際是 1d。沒有改去別的資料。"
+        }
+      ]
+    },
+    {
+      "name": "btc_leverage_3",
+      "http": 400,
+      "ok": false,
+      "errors": [
+        {
+          "field": "leverage",
+          "message": "需要介於 0.01 與 2"
+        },
+        {
+          "field": "leverage",
+          "message": "紙上倍數大於 2，已拒絕"
+        }
+      ]
+    },
+    {
+      "name": "btc_spot_leverage_2",
+      "http": 400,
+      "ok": false,
+      "errors": [
+        {
+          "field": "leverage",
+          "message": "現貨與 GMGN 交換沒有原生保證金，倍數必須是 1。假設保證金是另一個模式。"
+        }
+      ]
+    }
+  ]
+}
