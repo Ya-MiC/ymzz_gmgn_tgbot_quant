@@ -1,0 +1,10 @@
+{
+  "url": "https://api.geckoterminal.com/api/v2/search/pools?query=bonk&network=solana",
+  "bytes": 29626,
+  "sha256": "084914e6a144377bd06872a366f7e48b591e4fb4b7b744c66e413286a1341849",
+  "file": "data/cache/gt_search_bonk.json",
+  "fetched_at_utc": "2026-11-10T02:27:28Z",
+  "fetched_at_kst": "2026-11-10T11:27:28+0900",
+  "status": 200,
+  "query": "bonk"
+}

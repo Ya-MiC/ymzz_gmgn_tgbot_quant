@@ -1,0 +1,1 @@
+status,segment,entry_signal_utc,entry_signal_kst,entry_fill_utc,entry_fill_kst,exit_signal_utc,exit_signal_kst,exit_fill_utc,exit_fill_kst,exit_reason,qty,entry_fill_px,exit_fill_px,realized_pnl,unrealized_pnl,gmgn_fees,pool_fees,chain_fees,entry_residual,exit_residual,pool_fee_is_assumed,execution_limitation

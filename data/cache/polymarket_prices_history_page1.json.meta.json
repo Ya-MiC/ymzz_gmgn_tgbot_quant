@@ -1,0 +1,14 @@
+{
+  "url": "https://data-api.polymarket.com/v2/prices-history?token_id=32338220190071351435772801779725302244575775216413325951443816017994629993401&interval=max&limit=1000",
+  "bytes": 60593,
+  "sha256": "da614d42c3545b8cba3697345c67d7a592f5dcc1c72d672ffe14dfd52929b160",
+  "file": "data/cache/polymarket_prices_history_page1.json",
+  "fetched_at_utc": "2026-11-10T02:30:58Z",
+  "fetched_at_kst": "2026-11-10T11:30:58+0900",
+  "status": 200,
+  "token_id": "32338220190071351435772801779725302244575775216413325951443816017994629993401",
+  "question": "Xi Jinping out before 2027?",
+  "condition_id": "0xa467b14d51f01b957109d9cbb1d6c124fab2a089d52ed8f471d23c2812e743b7",
+  "trace_id": "a40e215e6abe4a4f9c92f9345496adf6",
+  "note": "probability in 0..1; first open Gamma market at fetch time; selection bias"
+}

@@ -1,0 +1,32 @@
+{
+  "declared_before_ohlcv": true,
+  "purpose": "exploratory survivor pool, not a point-in-time universe and not meme-market performance",
+  "queries": [
+    "bonk",
+    "wif",
+    "popcat"
+  ],
+  "why_these_names": "BONK, WIF, and POPCAT are widely known Solana meme tokens that began trading well before this keyless window. They are selected because a multi-week history is plausible, not because of any return. Pools that already died and left the search index cannot appear. This is survivorship plus selected-pool bias.",
+  "rank": "highest reserve_in_usd only; price_change_percentage is ignored and not stored",
+  "quote_allow": [
+    "SOL",
+    "WSOL",
+    "USDC",
+    "USDT"
+  ],
+  "exclude_pool": "Czfq3xZZDmsdGdUyrNLtRhGc47cXcZtLG4crryfu44zE",
+  "qualify": {
+    "min_daily_bars": 60,
+    "min_span_days": 21
+  },
+  "among_qualified": "longest span_days, tie-break higher reserve_in_usd",
+  "major_pair_role": "plumbing baseline only; must not be reported as meme performance",
+  "fetched_at_utc": "2026-11-10T02:27:01Z",
+  "fetched_at_kst": "2026-11-10T11:27:01+0900",
+  "exact_name": "base name must match BONK, $WIF/WIF, or POPCAT versus SOL/WSOL/USDC/USDT; fuzzy search hits are rejected",
+  "mature_pool_created_before": "2026-05-01T00:00:00Z",
+  "tightened_at": {
+    "fetched_at_utc": "2026-11-10T02:30:03Z",
+    "fetched_at_kst": "2026-11-10T11:30:03+0900"
+  }
+}

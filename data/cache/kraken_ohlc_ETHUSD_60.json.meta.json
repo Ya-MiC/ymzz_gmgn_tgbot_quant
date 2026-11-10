@@ -1,0 +1,12 @@
+{
+  "url": "https://api.kraken.com/0/public/OHLC?pair=ETHUSD&interval=60",
+  "pair": "ETHUSD",
+  "interval_minutes": 60,
+  "fetched_at_utc": "2026-11-10T03:24:02Z",
+  "fetched_at_kst": "2026-11-10T12:24:02+0900",
+  "sha256": "576c31e2cae208eca63d27aac34383ec5dfeb0134dcc53201fbebbed5c419183",
+  "provider": "kraken_public_rest",
+  "api_key_used": false,
+  "library": null,
+  "note": "Raw response. The daily candle that is still open at fetched_at is dropped by the loader, not here."
+}

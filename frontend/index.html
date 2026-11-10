@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>本機研究</title>
+<style>
+:root { color-scheme: dark; }
+body { margin: 0; font-family: "IBM Plex Sans", "Noto Sans TC", sans-serif; background: #121416; color: #f4f1ea; }
+header, main { padding: 20px; }
+header { background: #1c2126; border-bottom: 1px solid #343b42; }
+h1 { margin: 0 0 8px; font-size: 22px; }
+.banner { background: #243044; padding: 10px 12px; margin-top: 10px; }
+.grid { display: grid; grid-template-columns: 340px 1fr; gap: 20px; }
+section { background: #1b1f24; padding: 14px; margin-bottom: 14px; }
+label { display: block; margin: 8px 0 4px; color: #c8c2b4; font-size: 13px; }
+input, select, textarea, button { width: 100%; box-sizing: border-box; background: #101316; color: #f4f1ea; border: 1px solid #4a4336; padding: 7px; }
+button { cursor: pointer; background: #c4a574; color: #1a140c; font-weight: 700; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tabs button { background: #2a3036; color: #f4f1ea; margin-bottom: 8px; }
+.tabs button.active { background: #c4a574; color: #1a140c; }
+#result[data-state="empty"] .facts, #result[data-state="error"] .facts { display: none; }
+.error { color: #ffb4a8; white-space: pre-wrap; }
+.muted { color: #b7b1a4; font-size: 13px; }
+svg { width: 100%; height: 180px; background: #101316; }
+.hidden { display: none; }
+@media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>晏銘湛箴 · 本機研究</h1>
+  <p class="muted">這頁由本機 Python 服務提供，計算走 <code>/api/backtest</code>。Streamlit 是另一個行程內介面。靜態 preview 與下載的 HTML 是快照，不會重算。沒有部署網址，沒有下單。</p>
+  <div class="banner" id="arch">正在讀取服務說明。</div>
+</header>
+<main>
+  <div class="tabs row">
+    <button type="button" id="tab-market" class="active">市場回測</button>
+    <button type="button" id="tab-wallet">地址與 CSV</button>
+    <button type="button" id="tab-poly">Polymarket 機率</button>
+  </div>
+  <div class="grid">
+    <form id="form">
+      <section>
+        <label>資料集</label>
+        <select id="dataset"></select>
+        <label>送出的周期。不在這份資料的周期會被拒絕</label>
+        <input id="interval" value="1d">
+        <p class="muted" id="coverage">尚未載入覆蓋範圍。</p>
+        <div class="row">
+          <div><label>開始日 UTC</label><input id="start_date" placeholder="空=全部"></div>
+          <div><label>結束日 UTC</label><input id="end_date" placeholder="空=全部"></div>
+        </div>
+      </section>
+      <section>
+        <label>本金 USD，最多 10</label>
+        <input id="initial_cash_usd" type="number" step="0.01" value="10">
+        <div class="row">
+          <div><label>單筆虧損預算，不能超過本金</label><input id="proposed_per_trade_loss_budget_usd" type="number" step="0.01"></div>
+          <div><label>回撤提案 USD，不能超過本金</label><input id="proposed_max_drawdown_usd" type="number" step="0.01"></div>
+        </div>
+        <label>決策 RSI 周期。14 與 19 都會進引擎</label>
+        <input id="rsi_period" type="number" value="14">
+        <div class="row">
+          <div><label>RSI 進場下限</label><input id="rsi_low" type="number" step="0.1"></div>
+          <div><label>RSI 進場上限</label><input id="rsi_high" type="number" step="0.1"></div>
+        </div>
+        <label>RSI 出場門檻</label>
+        <input id="rsi_exit" type="number" step="0.1">
+        <p class="muted">比較用 RSI 只畫圖，不會變成第四、第五個決策指標。例子可填 6 與 12。</p>
+        <div class="row">
+          <div><label>比較 RSI 1</label><input id="overlay_a" placeholder="空=不畫"></div>
+          <div><label>比較 RSI 2</label><input id="overlay_b" placeholder="空=不畫"></div>
+        </div>
+        <div class="row">
+          <div><label>圖上超賣線</label><input id="horizontal_oversold" type="number"></div>
+          <div><label>圖上超買線</label><input id="horizontal_overbought" type="number"></div>
+        </div>
+        <label><input id="show_horizontal_levels" type="checkbox" checked style="width:auto"> 畫水平線。這兩條不參與下單</label>
+      </section>
+      <section>
+        <div class="row">
+          <div><label>ATR 周期</label><input id="atr_period" type="number"></div>
+          <div><label>相對成交量回看</label><input id="rv_period" type="number"></div>
+        </div>
+        <label>相對成交量門檻</label>
+        <input id="rv_min" type="number" step="0.1">
+        <div class="row">
+          <div><label>停損倍數 k_sl</label><input id="k_sl" type="number" step="0.1"></div>
+          <div><label>停利倍數 k_tp</label><input id="k_tp" type="number" step="0.1"></div>
+        </div>
+        <div class="row">
+          <div><label>每邊費率</label><input id="fee_rate_per_side" type="number" step="0.001"></div>
+          <div><label>池費，空字代表未知</label><input id="pool_fee_rate_per_side"></div>
+        </div>
+        <div class="row">
+          <div><label>買入滑點 bp</label><input id="slip_bp_buy" type="number"></div>
+          <div><label>賣出滑點 bp</label><input id="slip_bp_sell" type="number"></div>
+        </div>
+        <div class="row">
+          <div><label>延遲幾根已收盤 K，最少 1</label><input id="execution_delay_bars" type="number"></div>
+          <div><label>每邊 SOL 成本</label><input id="chain_cost_sol_per_side" type="number" step="0.001"></div>
+        </div>
+        <label>SOL 預留</label>
+        <input id="wallet_reserve_sol" type="number" step="0.01">
+      </section>
+      <section>
+        <label>商品模式</label>
+        <select id="instrument_mode">
+          <option value="spot">spot 現貨。沒有原生保證金</option>
+          <option value="hypothetical_assumed_margin">hypothetical_assumed_margin 假設保證金，不是真實永續</option>
+        </select>
+        <p class="muted" id="margin-reason">現貨與 GMGN 交換不能開保證金。倍數固定 1。</p>
+        <label>紙上倍數。按鈕是 1、1.5、2。大於 2 會被伺服器拒絕</label>
+        <div class="row">
+          <button type="button" data-lev="1">1</button>
+          <button type="button" data-lev="1.5">1.5</button>
+          <button type="button" data-lev="2">2</button>
+        </div>
+        <input id="leverage" type="number" step="0.1" value="1">
+        <div id="assumed" class="hidden">
+          <div class="row">
+            <div><label>假設借款日利率</label><input id="assumed_borrow_rate_per_day" type="number" step="0.0001"></div>
+            <div><label>假設資金費日利率</label><input id="assumed_funding_rate_per_day" type="number" step="0.0001"></div>
+          </div>
+          <div class="row">
+            <div><label>維持率</label><input id="maintenance_margin_frac" type="number" step="0.01"></div>
+            <div><label>假設強平罰則</label><input id="liquidation_penalty_frac" type="number" step="0.01"></div>
+          </div>
+        </div>
+        <label><input id="no_reentry" type="checkbox" style="width:auto"> no_reentry 實驗。不是第一波偵測，也不能證明沒有第二波</label>
+      </section>
+      <section>
+        <button type="submit" id="run">用這個設定重算</button>
+        <div class="row" style="margin-top:8px">
+          <button type="button" id="reset">回復預設</button>
+          <button type="button" id="save">下載設定</button>
+        </div>
+        <div class="row">
+          <button type="button" id="export-btn">下載同一份設定</button>
+          <label>匯入設定<input id="import" type="file" accept="application/json"></label>
+        </div>
+        <div class="row">
+          <button type="button" id="preset-eth">改成 ETH 日線</button>
+          <button type="button" id="preset-wif">改成 WIF 保守</button>
+        </div>
+      </section>
+    </form>
+    <div>
+      <section id="market-panel">
+        <div id="result" data-state="empty">
+          <p id="empty">還沒有計算。</p>
+          <p class="error" id="error"></p>
+          <div class="facts">
+            <h2 id="headline"></h2>
+            <p id="provenance"></p>
+            <p id="metrics"></p>
+            <p class="muted" id="formula"></p>
+            <svg id="chart" viewBox="0 0 600 180"></svg>
+            <pre id="warnings"></pre>
+            <div class="row">
+              <button type="button" id="download-html">下載這次快照 HTML</button>
+              <button type="button" id="download-md">下載這次報告</button>
+              <button type="button" id="download-csv">下載這次帳本</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="wallet-panel" class="hidden">
+        <h2>地址清單</h2>
+        <p class="muted" id="wallet-note"></p>
+        <div class="row">
+          <input id="address" placeholder="公開地址">
+          <input id="address-label" placeholder="標籤">
+        </div>
+        <button type="button" id="add-address">加入清單</button>
+        <ul id="addresses"></ul>
+        <label>CSV</label>
+        <textarea id="csv" rows="6"></textarea>
+        <button type="button" id="check-csv">檢查 CSV</button>
+        <pre id="csv-result"></pre>
+      </section>
+      <section id="poly-panel" class="hidden">
+        <h2>Polymarket</h2>
+        <p class="muted">這是 0 到 1 的機率，不進 $10 本金，也不計算交易損益。</p>
+        <pre id="poly"></pre>
+      </section>
+    </div>
+  </div>
+</main>
+<script>
+const state = { config: null, datasets: [], last: null };
+const fields = ["initial_cash_usd","proposed_per_trade_loss_budget_usd","proposed_max_drawdown_usd","rsi_period","rsi_low","rsi_high","rsi_exit","atr_period","rv_period","rv_min","k_sl","k_tp","fee_rate_per_side","slip_bp_buy","slip_bp_sell","execution_delay_bars","chain_cost_sol_per_side","wallet_reserve_sol","leverage","assumed_borrow_rate_per_day","assumed_funding_rate_per_day","maintenance_margin_frac","liquidation_penalty_frac","horizontal_oversold","horizontal_overbought"];
+function $(id) { return document.getElementById(id); }
+async function api(path, options) {
+  const response = await fetch(path, options);
+  const body = await response.json();
+  return { status: response.status, body };
+}
+function fill(config) {
+  state.config = config;
+  for (const field of fields) $(field).value = config[field];
+  $("interval").value = config.interval;
+  $("start_date").value = config.start_date || "";
+  $("end_date").value = config.end_date || "";
+  $("instrument_mode").value = config.instrument_mode;
+  $("no_reentry").checked = config.no_reentry;
+  $("show_horizontal_levels").checked = config.show_horizontal_levels;
+  $("pool_fee_rate_per_side").value = config.pool_fee_rate_per_side === null ? "" : config.pool_fee_rate_per_side;
+  $("overlay_a").value = config.rsi_overlay_periods[0] || "";
+  $("overlay_b").value = config.rsi_overlay_periods[1] || "";
+  $("dataset").value = config.dataset_key;
+  syncMode();
+  showCoverage();
+}
+function datasetByKey(key) { return state.datasets.find(row => row.dataset_key === key); }
+function showCoverage() {
+  const row = datasetByKey($("dataset").value);
+  if (!row) return;
+  $("coverage").textContent = `${row.marketplace} · ${row.network} · ${row.quote} · ${row.unit} · ${row.pair} · ${row.interval} · ${row.closed_bars} 根已收盤 · ${row.first_open_utc} → ${row.last_open_utc} · 排除未收盤 ${row.dropped_unclosed} · ${row.fetched_at_utc} · ${row.sha256}`;
+}
+function readConfig() {
+  const config = { ...state.config };
+  for (const field of fields) config[field] = Number($(field).value);
+  config.interval = $("interval").value.trim();
+  config.start_date = $("start_date").value.trim() || null;
+  config.end_date = $("end_date").value.trim() || null;
+  config.instrument_mode = $("instrument_mode").value;
+  config.no_reentry = $("no_reentry").checked;
+  config.show_horizontal_levels = $("show_horizontal_levels").checked;
+  config.dataset_key = $("dataset").value;
+  const selected = datasetByKey(config.dataset_key);
+  config.symbol = selected.symbol;
+  config.source = selected.marketplace;
+  config.pool = selected.pool;
+  const poolText = $("pool_fee_rate_per_side").value.trim();
+  config.pool_fee_rate_per_side = poolText === "" ? null : Number(poolText);
+  config.proposed_max_drawdown_frac = config.proposed_max_drawdown_usd / config.initial_cash_usd;
+  config.rsi_overlay_periods = [$("overlay_a").value, $("overlay_b").value].filter(value => value !== "").map(Number);
+  return config;
+}
+function syncMode() {
+  const spot = $("instrument_mode").value === "spot";
+  $("assumed").classList.toggle("hidden", spot);
+  $("margin-reason").textContent = spot
+    ? "現貨與 GMGN 交換沒有原生保證金。這份表單會把倍數維持在 1。若仍送出大於 1，伺服器會拒絕。"
+    : "假設保證金會依抵押、借入、假設費用與下一根開盤的假設強平計算。這不是真實永續回測。";
+  if (spot) $("leverage").value = "1";
+}
+function clearResult(message, bad) {
+  state.last = null;
+  $("result").dataset.state = bad ? "error" : "empty";
+  $("empty").textContent = bad ? "" : message;
+  $("error").textContent = bad ? message : "";
+}
+function draw(payload) {
+  const svg = $("chart");
+  const series = [payload.indicators.rsi, ...Object.values(payload.display_only.rsi_overlays)];
+  const colors = ["#e6d3a3", "#7eb6ff", "#e07a5f"];
+  const width = 600, height = 180;
+  let marks = "";
+  if (payload.display_only.horizontal_levels.shown) {
+    for (const level of [payload.display_only.horizontal_levels.oversold, payload.display_only.horizontal_levels.overbought]) {
+      const y = height - (level / 100) * height;
+      marks += `<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="#665" />`;
+    }
+  }
+  series.forEach((values, index) => {
+    const points = [];
+    values.forEach((value, i) => {
+      if (value === null) return;
+      const x = (i / Math.max(values.length - 1, 1)) * width;
+      const y = height - (value / 100) * height;
+      points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+    });
+    marks += `<polyline fill="none" stroke="${colors[index]}" stroke-width="1.4" points="${points.join(" ")}" />`;
+  });
+  svg.innerHTML = marks;
+}
+function showResult(payload) {
+  state.last = payload;
+  $("result").dataset.state = "ok";
+  $("result").dataset.symbol = payload.provenance.symbol;
+  $("result").dataset.rsi = String(payload.metrics.rsi_period);
+  $("result").dataset.sha = payload.request_sha256;
+  $("empty").textContent = "";
+  $("error").textContent = "";
+  const p = payload.provenance;
+  $("headline").textContent = `${p.symbol} · ${p.marketplace} · ${p.interval}`;
+  $("provenance").textContent = `${p.network} · ${p.quote} · ${p.unit} · ${p.pair} · 抓取 ${p.fetched_at_utc} · sha256 ${p.sha256} · 已收盤 ${p.closed_bars} · ${p.first_open_utc} → ${p.last_open_utc}`;
+  const m = payload.metrics;
+  $("metrics").textContent = `RSI${m.rsi_period} / ATR${m.atr_period} / RV${m.rv_period} · ${m.instrument_mode} ${m.leverage_used}x · 期末 ${m.final_equity_usd} · 已平倉 ${m.closed_trade_count} · 請求 ${payload.request_sha256.slice(0, 12)}`;
+  $("formula").textContent = payload.formulas.rsi.orders + " " + payload.display_only.note;
+  $("warnings").textContent = payload.warnings.join("\n");
+  draw(payload);
+}
+function download(name, text, type) {
+  const blob = new Blob([text], { type });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = name;
+  link.click();
+}
+$("form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const config = readConfig();
+  const response = await api("/api/backtest", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(config) });
+  if (!response.body.ok) {
+    clearResult(response.body.errors.map(item => item.field + "：" + item.message).join("\n"), true);
+    return;
+  }
+  showResult(response.body);
+});
+document.querySelectorAll("[data-lev]").forEach(button => button.addEventListener("click", () => { $("leverage").value = button.dataset.lev; }));
+$("instrument_mode").addEventListener("change", syncMode);
+$("dataset").addEventListener("change", () => {
+  const row = datasetByKey($("dataset").value);
+  $("interval").value = row.interval;
+  showCoverage();
+});
+$("reset").addEventListener("click", async () => { fill((await api("/api/config/default")).body); clearResult("已回復預設，還沒有計算。", false); });
+$("preset-eth").addEventListener("click", async () => { fill((await api("/api/config/default?preset=kraken_eth_spot_assumed_fees")).body); clearResult("已改成 ETH 預設，還沒有計算。", false); });
+$("preset-wif").addEventListener("click", async () => { fill((await api("/api/config/default?preset=wif_conservative")).body); clearResult("已改成 WIF 保守預設，還沒有計算。", false); });
+function exportConfig() { download("research-config.json", JSON.stringify(readConfig(), null, 2), "application/json"); }
+$("save").addEventListener("click", exportConfig);
+$("export-btn").addEventListener("click", exportConfig);
+$("import").addEventListener("change", async () => {
+  const file = $("import").files[0];
+  if (!file) return;
+  fill(JSON.parse(await file.text()));
+  clearResult("已匯入設定，還沒有計算。", false);
+});
+$("download-html").addEventListener("click", () => state.last && download("snapshot.html", state.last.snapshot_html, "text/html"));
+$("download-md").addEventListener("click", () => state.last && download("report.md", state.last.report_markdown, "text/markdown"));
+$("download-csv").addEventListener("click", () => state.last && download("ledger.csv", state.last.ledger_csv, "text/csv"));
+function showTab(name) {
+  $("market-panel").classList.toggle("hidden", name !== "market");
+  $("wallet-panel").classList.toggle("hidden", name !== "wallet");
+  $("poly-panel").classList.toggle("hidden", name !== "poly");
+  $("form").classList.toggle("hidden", name !== "market");
+  for (const id of ["market", "wallet", "poly"]) $("tab-" + id).classList.toggle("active", id === name);
+}
+$("tab-market").addEventListener("click", () => showTab("market"));
+$("tab-wallet").addEventListener("click", () => showTab("wallet"));
+$("tab-poly").addEventListener("click", async () => {
+  showTab("poly");
+  const response = await api("/api/polymarket");
+  $("poly").textContent = JSON.stringify({ available: response.body.available, points: response.body.points, raw_points: response.body.raw_points, last_price: response.body.last_price, separate_from_equity: true, shared_bankroll: false, question: response.body.question, note: response.body.note }, null, 2);
+});
+$("add-address").addEventListener("click", async () => {
+  const response = await api("/api/wallets/add", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address: $("address").value.trim(), label: $("address-label").value.trim() }) });
+  renderWallets(response.body);
+});
+$("check-csv").addEventListener("click", async () => {
+  const response = await api("/api/wallets/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ csv: $("csv").value }) });
+  $("csv-result").textContent = JSON.stringify(response.body, null, 2);
+});
+function renderWallets(body) {
+  $("wallet-note").textContent = (body.not_implemented || []).join("、") + "。沒有私鑰，也沒有把轉帳當成損益。";
+  $("addresses").innerHTML = (body.addresses || []).map(row => `<li>${row.label} · ${row.address} <button type="button" data-remove="${row.address}">移除</button></li>`).join("");
+  $("addresses").querySelectorAll("[data-remove]").forEach(button => button.addEventListener("click", async () => {
+    const response = await api("/api/wallets/remove", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address: button.dataset.remove }) });
+    renderWallets(response.body);
+  }));
+}
+(async function init() {
+  const arch = await api("/api/architecture");
+  $("arch").textContent = arch.body.frontend.live_page + "。" + arch.body.frontend.streamlit + " " + arch.body.data.kraken;
+  const listed = await api("/api/datasets");
+  state.datasets = listed.body.datasets;
+  $("dataset").innerHTML = state.datasets.map(row => `<option value="${row.dataset_key}">${row.symbol} · ${row.marketplace} · ${row.interval}</option>`).join("");
+  fill((await api("/api/config/default")).body);
+  const wallets = await api("/api/wallets");
+  $("csv").value = wallets.body.example;
+  renderWallets(wallets.body);
+})();
+</script>
+</body>
+</html>

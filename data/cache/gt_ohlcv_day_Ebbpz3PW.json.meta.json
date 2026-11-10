@@ -1,0 +1,12 @@
+{
+  "url": "https://api.geckoterminal.com/api/v2/networks/solana/pools/Ebbpz3PWLaQxj2oyK967RgEPbcPypjQCoZ3tpB4fwLsk/ohlcv/day?aggregate=1&limit=1000&currency=usd&include_empty_intervals=false",
+  "bytes": 22188,
+  "sha256": "3d0e10bf92053a3221e730c9d3e4840b5e79181e86c87bfbcb9c14a4006cb10f",
+  "file": "data/cache/gt_ohlcv_day_Ebbpz3PW.json",
+  "fetched_at_utc": "2026-11-10T02:28:09Z",
+  "fetched_at_kst": "2026-11-10T11:28:09+0900",
+  "status": 200,
+  "pool": "Ebbpz3PWLaQxj2oyK967RgEPbcPypjQCoZ3tpB4fwLsk",
+  "timeframe": "day",
+  "aggregate": 1
+}

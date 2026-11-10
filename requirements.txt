@@ -1,0 +1,8 @@
+# The HTTP research service uses the Python standard library.
+# ccxt is not installed. A free library is not the same thing as access to a paid feed.
+# BTC and ETH candles come from Kraken's public OHLC endpoint, which does not use an API key.
+numpy==2.5.4
+pandas==2.3.3
+plotly==5.24.1
+streamlit==1.67.0
+pytest==9.2.0

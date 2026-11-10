@@ -1,0 +1,2 @@
+status,segment,entry_signal_utc,entry_signal_kst,entry_fill_utc,entry_fill_kst,exit_fill_utc,exit_fill_kst,entry_fill_px,exit_fill_px,qty,realized_pnl,fee_per_side_usd,pool_fees,chain_fees,exit_reason,leverage
+CLOSED,train,2025-02-24T00:00:00Z,2025-02-24T09:00:00+0900,2025-02-25T00:00:00Z,2025-02-25T09:00:00+0900,2025-02-27T00:00:00Z,2025-02-27T09:00:00+0900,91809.00319999998,83837.63029999999,1.7781372363221733e-05,-0.14798842617021535,0.006246476389219673,0.0,0.0,stop_on_close_next_open,

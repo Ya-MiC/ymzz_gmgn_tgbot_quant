@@ -1,0 +1,10 @@
+{
+  "url": "https://api.geckoterminal.com/api/v2/networks/solana/pools/EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx",
+  "bytes": 1581,
+  "sha256": "b8e71558a4c6e86fb11e1d6a1de54b5ded851ae1aecbcae384d20aaa4a1f4586",
+  "file": "data/cache/gt_pool_meme_EP2ib6dY.json",
+  "fetched_at_utc": "2026-11-10T02:30:44Z",
+  "fetched_at_kst": "2026-11-10T11:30:44+0900",
+  "status": 200,
+  "role": "selected_survivor_meme_pool"
+}
