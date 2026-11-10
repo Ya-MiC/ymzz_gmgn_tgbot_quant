@@ -39,6 +39,7 @@ class SeriesLoad:
     invalid_bars: int
     sources: list[str]
     sha256: str
+    dropped_unclosed: list[dict]
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -111,10 +112,62 @@ def parse_pool_trades(payload: dict) -> list[dict]:
     return out
 
 
+def parse_utc_stamp(raw: object) -> int | None:
+    if not isinstance(raw, str) or not raw:
+        return None
+    try:
+        return int(datetime.strptime(raw, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc).timestamp())
+    except ValueError:
+        return None
+
+
+def fetched_at_unix(path: Path) -> int | None:
+    """Read the sidecar fetch time. Missing or unparsable times do not count as closed."""
+    meta_path = Path(str(path) + ".meta.json")
+    if not meta_path.exists():
+        return None
+    try:
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+    return parse_utc_stamp(meta.get("fetched_at_utc"))
+
+
+def bar_is_closed(open_ts: int, interval_seconds: int, fetched_at: int | None) -> bool:
+    """A candle timestamp is its open. It is closed only when open + interval <= fetch time.
+
+    The interval is the series resolution (86400 for a UTC day, 3600 for an hour).
+    Equality counts as closed: the period has ended. A missing fetch time is not closed.
+    """
+    if fetched_at is None or interval_seconds <= 0:
+        return False
+    return open_ts + interval_seconds <= fetched_at
+
+
+def closed_probability_points(points: list[dict], fetched_at: int | None) -> tuple[list[dict], list[dict]]:
+    """Keep probability buckets whose window ended at or before the fetch.
+
+    resolution_seconds == 0 is a terminal live tick, not a closed bucket.
+    """
+    kept: list[dict] = []
+    dropped: list[dict] = []
+    for point in points:
+        resolution = int(point.get("resolution_seconds") or 0)
+        if resolution <= 0:
+            dropped.append({**point, "reason": "terminal_tick_not_a_closed_bucket"})
+            continue
+        if fetched_at is None or point["timestamp"] + resolution > fetched_at:
+            dropped.append({**point, "reason": "bucket_open_at_fetch"})
+            continue
+        kept.append(point)
+    return kept, dropped
+
+
 def load_ohlcv_files(paths: list[Path], expected_interval: int) -> SeriesLoad:
     if not paths:
         raise FileNotFoundError("no OHLCV files")
-    combined: list[Bar] = []
+    closed_by_ts: dict[int, list[tuple[Bar, int, str]]] = {}
+    open_by_ts: dict[int, list[tuple[int | None, str]]] = {}
     sources = []
     digest = hashlib.sha256()
     for path in paths:
@@ -123,21 +176,51 @@ def load_ohlcv_files(paths: list[Path], expected_interval: int) -> SeriesLoad:
         raw = path.read_bytes()
         digest.update(raw)
         sources.append(str(path))
-        combined.extend(parse_gt_ohlcv_payload(json.loads(raw)))
-    combined.sort(key=lambda b: b.ts)
-    dedup: list[Bar] = []
+        fetched = fetched_at_unix(path)
+        for bar in parse_gt_ohlcv_payload(json.loads(raw)):
+            if bar_is_closed(bar.ts, expected_interval, fetched):
+                closed_by_ts.setdefault(bar.ts, []).append((bar, fetched, str(path)))
+            else:
+                open_by_ts.setdefault(bar.ts, []).append((fetched, str(path)))
+    dropped_unclosed = []
+    for ts in sorted(open_by_ts):
+        if ts in closed_by_ts:
+            continue
+        fetches = [item[0] for item in open_by_ts[ts] if item[0] is not None]
+        open_label = fmt_ts(ts)
+        close_label = fmt_ts(ts + expected_interval)
+        dropped_unclosed.append(
+            {
+                "ts": ts,
+                "utc": open_label["utc"],
+                "kst": open_label["kst"],
+                "close_ts": ts + expected_interval,
+                "close_utc": close_label["utc"],
+                "close_kst": close_label["kst"],
+                "fetched_at_unix": min(fetches) if fetches else None,
+                "fetched_at_utc": (
+                    datetime.fromtimestamp(min(fetches), timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ") if fetches else None
+                ),
+                "interval_seconds": expected_interval,
+                "sources": [item[1] for item in open_by_ts[ts]],
+                "reason": "unclosed_at_fetch",
+            }
+        )
+    combined = [closed_by_ts[ts][0][0] for ts in sorted(closed_by_ts)]
     duplicates = 0
     invalid = 0
-    for bar in combined:
-        if dedup and dedup[-1].ts == bar.ts:
+    dedup: list[Bar] = []
+    for ts in sorted(closed_by_ts):
+        observations = closed_by_ts[ts]
+        first = observations[0][0]
+        for extra, _fetched, _source in observations[1:]:
             duplicates += 1
-            if dedup[-1] != bar:
-                raise ValueError(f"conflicting duplicate timestamp {bar.ts}")
-            continue
-        if not _ohlc_sane(bar):
+            if extra != first:
+                raise ValueError(f"conflicting duplicate timestamp {ts}")
+        if not _ohlc_sane(first):
             invalid += 1
             continue
-        dedup.append(bar)
+        dedup.append(first)
     gaps = []
     limit = expected_interval * 1.5
     for prev, nxt in zip(dedup, dedup[1:]):
@@ -157,6 +240,7 @@ def load_ohlcv_files(paths: list[Path], expected_interval: int) -> SeriesLoad:
         invalid_bars=invalid,
         sources=sources,
         sha256=digest.hexdigest(),
+        dropped_unclosed=dropped_unclosed,
     )
 
 

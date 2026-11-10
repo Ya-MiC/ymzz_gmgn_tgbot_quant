@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from ymzz_quant.data_adapters import fmt_ts  # noqa: E402
+from ymzz_quant.report import scenario_diff_rows  # noqa: E402
 from ymzz_quant.service import load_bars, polymarket_summary, recent_swaps  # noqa: E402
 
 RUNS = ROOT / "results" / "runs.json"
@@ -79,18 +80,38 @@ def render_page(payload, bars, meta, conservative, explor, poly, swaps) -> str:
             f"<td class='mono'>{html.escape(str(row.get('tx_hash')))}</td>"
             "</tr>"
         )
-    trade_row = "這段沒有成交。"
+    heldout_n = m.get("heldout_trade_count")
+    if heldout_n is None:
+        heldout_n = sum(1 for row in explor["trades"] if row.get("segment") == "heldout")
+    trade_row = f"這段沒有成交。留出段成交 {heldout_n} 筆。"
     if trade:
         trade_row = (
             f"訊號 {trade['entry_signal_utc']}（KST {trade['entry_signal_kst']}）"
             f" → 下一根開盤 {trade['entry_fill_utc']} 買入，"
             f"出場 {trade['exit_fill_utc']}（{trade['exit_reason']}）。"
             f"已實現 ${trade['realized_pnl']:.4f}。"
-            f"段落：{trade['segment']}。留出段沒有成交。"
+            f"進場段落：{trade['segment']}。留出段成交 {heldout_n} 筆。"
+            " no_reentry 是暫定開關，第一筆出場後故意擋掉同一池之後所有新倉，包含驗證段與留出段。"
+            "這不是第一波偵測，也不是已驗證的樣本外策略。"
         )
     start = explor["bars_meta"]["start"]
     end = explor["bars_meta"]["end"]
+    end_close = explor["bars_meta"].get("end_close") or end
+    dropped = meta.get("dropped_unclosed") or []
+    if dropped:
+        drop_txt = "已排除未收盤：" + "；".join(
+            f"開盤 {row['utc']} / {row['kst']}，收盤 {row['close_utc']} / {row['close_kst']}，抓取 {row.get('fetched_at_utc')}"
+            for row in dropped
+        ) + "。"
+    else:
+        drop_txt = "這次圖上沒有再排除未收盤 K 線。"
+    changed = [row for row in scenario_diff_rows(conservative["scenario"], explor["scenario"]) if row["changed"]]
+    diff_txt = "；".join(f"{row['label']} {row['conservative']} → {row['exploratory']}" for row in changed)
+    win_txt = "未定義" if not m.get("win_rate_defined") else f"{m['win_rate']*100:.0f}%"
+    pf_txt = m["profit_factor"] if m.get("profit_factor_defined") else "未定義"
     bench = explor["benchmarks"]["buy_and_hold"]
+    bench_txt = "未計算" if bench.get("final_equity_usd") is None else f"{bench['final_equity_usd']:.2f}"
+    bench_ret = "未計算" if bench.get("total_return") is None else f"{bench['total_return']*100:.2f}%"
     generated = payload["generated_at_kst"]
     return f"""<!DOCTYPE html>
 <html lang="zh-Hant">
@@ -144,16 +165,16 @@ def render_page(payload, bars, meta, conservative, explor, poly, swaps) -> str:
     <section class="card">
       <h2>探索實驗（假設池費）</h2>
       <p><strong>{m['trade_count']} 筆 · 總報酬 {m['total_return']*100:.2f}%</strong></p>
-      <p>期末 ${m['final_equity_usd']:.4f}。最大回撤 {m['max_drawdown']*100:.2f}%（收盤市值）。費用 ${m['fees_paid_usd']:.4f}，鏈上費 ${m['chain_fees_paid_usd']:.4f}。勝率 {m['win_rate']*100:.0f}%（已平倉 {m['closed_trade_count']} 筆），獲利因子 {m['profit_factor']}。</p>
+      <p>期末 ${m['final_equity_usd']:.4f}。最大回撤 {m['max_drawdown']*100:.2f}%（收盤市值）。費用 ${m['fees_paid_usd']:.4f}，鏈上費 ${m['chain_fees_paid_usd']:.4f}。勝率 {win_txt}（已平倉 {m['closed_trade_count']} 筆），獲利因子 {pf_txt}。這不是完整風控策略。</p>
       <p>{html.escape(trade_row)}</p>
     </section>
   </div>
 
-  <p class="warn">這不是獲利宣告。探索實驗放寬了 OHLCV 無法核實的安全閘，池費 0.30%/邊是假設。唯一成交落在訓練段；$10 裡約 $4.30 是 0.05 SOL 預留。買入持有的未實現期末約 ${bench['final_equity_usd']:.2f}（報酬 {bench['total_return']*100:.2f}%），賣出費還沒扣。現金基準是 $10。少做交易而少賠，不等於指標有效。</p>
+  <p class="warn">這不是獲利宣告，也不是完整風控策略。放寬實驗沒有關掉單筆預算檢查，而是把提議預算從 $0.10 改成 $3.00，所以虧損可以超過 $0.10。登記差：{html.escape(diff_txt)}。留出段成交 {heldout_n} 筆。no_reentry 會在第一筆出場後故意擋掉同一池之後所有驗證段與留出段的新倉，不是第一波偵測，也不是已驗證的樣本外策略。$10 裡約 $4.30 是 0.05 SOL 預留，大於單邊鏈上費，下一根開盤的固定費付得起。買入持有的未實現期末約 ${bench_txt}（報酬 {bench_ret}），賣出費還沒扣。現金基準是 $10。少做交易而少賠，不等於指標有效。上一份含未收盤 2026-11-10 日線的預覽已取代，見 results/superseded/。</p>
 
-  <h2>$WIF / SOL 日線</h2>
-  <p>池 <span class="mono">{html.escape(meta['pool'])}</span> · 代幣 <span class="mono">{html.escape(meta['base_token'])}</span> · Raydium · {html.escape(start['utc'])}（{html.escape(start['kst'])}）至 {html.escape(end['utc'])}（{html.escape(end['kst'])}）· {meta['bar_count']} 根 · 缺口 {meta['gap_count']}。來源 <span class="mono">https://api.geckoterminal.com/api/v2</span>。這是倖存池，不是 meme 全市場。</p>
-  <label for="scrub">重播到第 <output id="scrubOut">{len(bars)}</output> / {len(bars)} 根（含當日）</label>
+  <h2>$WIF / SOL 已收盤日線</h2>
+  <p>池 <span class="mono">{html.escape(meta['pool'])}</span> · 代幣 <span class="mono">{html.escape(meta['base_token'])}</span> · Raydium · 第一根開盤 {html.escape(start['utc'])} / {html.escape(start['kst'])} · 最後一根開盤 {html.escape(end['utc'])} / {html.escape(end['kst'])} · 該根收盤 {html.escape(end_close['utc'])} / {html.escape(end_close['kst'])} · 已收盤 {meta['bar_count']} 根 · 缺口 {meta['gap_count']}。{html.escape(drop_txt)} 來源 <span class="mono">https://api.geckoterminal.com/api/v2</span>。這是倖存池，不是 meme 全市場。橫軸是開盤時刻。</p>
+  <label for="scrub">重播到第 <output id="scrubOut">{len(bars)}</output> / {len(bars)} 根已收盤 K 線</label>
   <input id="scrub" type="range" min="1" max="{len(bars)}" value="{len(bars)}"/>
   <p id="scrubDate"></p>
   {candle}
@@ -171,7 +192,7 @@ def render_page(payload, bars, meta, conservative, explor, poly, swaps) -> str:
   </table>
 
   <h2>Polymarket 機率（分開，沒有損益）</h2>
-  <p>{html.escape(str(poly.get('question')))}。Yes token 的價格是 0–1 機率，不是美元報酬。選擇方式：{html.escape(str(poly.get('selection_bias')))}。點數 {poly.get('points')}，區間 {poly.get('min_price')}–{poly.get('max_price')}，最後 {poly.get('last_price')}。沒有和 $10 帳戶合併。</p>
+  <p>{html.escape(str(poly.get('question')))}。Yes token 的價格是 0–1 機率，不是美元報酬。選擇方式：{html.escape(str(poly.get('selection_bias')))}。已結束的桶 {poly.get('points')} 點（原始 {poly.get('raw_points')}，排除 {poly.get('unclosed_point_count')}）。區間 {poly.get('min_price')}–{poly.get('max_price')}，最後已結束桶 {poly.get('last_price')}。終端報價不是已收盤桶。沒有和 $10 帳戶合併。</p>
   {poly_svg}
 
   <h2>公開池成交骨架（不是錢包獲利）</h2>
@@ -185,11 +206,11 @@ def render_page(payload, bars, meta, conservative, explor, poly, swaps) -> str:
 
   <h2>限制</h2>
   <ul>
-    <li>最多三個指標：RSI(14)、ATR%(14)、相對量。不再進場是暫定設定，不是第四個指標。</li>
-    <li>手動 TG 模型：收盤訊號、下一根開盤成交。沒有理想化的盤中止損。</li>
+    <li>最多三個指標：RSI(14)、ATR%(14)、相對量。no_reentry 是暫定開關，第一筆出場後擋掉同一池之後所有新倉，含驗證段與留出段。不是第一波偵測，也不是已驗證的樣本外策略。</li>
+    <li>手動 TG 模型：收盤訊號、下一根開盤成交。不用該根 high／low，也不把止損價當成成交價。預留 0.05 SOL 大於單邊鏈上 0.005 SOL，下一根的固定費從留下的現金支付。</li>
     <li>SOL/USDC 只是管線基準，不在這張主圖裡，也不能當成打金狗績效。</li>
     <li>日線不是規格稿裡的 15 分鐘。15 分鐘整段沒有下載。</li>
-    <li>單筆 $0.10 與回撤 20% 是提議值，不是已接受的風險額度。</li>
+    <li>單筆 $0.10 與回撤 20% 是提議值，不是已接受的風險額度。放寬實驗把預算改成 $3，不是把檢查關掉，也不是完整風控策略。</li>
   </ul>
   <footer>
     <p>Powered by CoinGecko. GeckoTerminal keyless 資料依其 API 條款僅作這次回測的可重現快照，不是資料轉售。Polymarket Data API 的機率序列另計。</p>
@@ -197,13 +218,14 @@ def render_page(payload, bars, meta, conservative, explor, poly, swaps) -> str:
 </main>
 <script>
 const stamps = {json.dumps([b.iso_utc() for b in bars])};
+const ksts = {json.dumps([b.iso_kst() for b in bars])};
 const slider = document.getElementById('scrub');
 const out = document.getElementById('scrubOut');
 const date = document.getElementById('scrubDate');
 function apply() {{
   const n = Number(slider.value);
   out.textContent = String(n);
-  date.textContent = stamps[n - 1] + ' UTC 之前的 K 線';
+  date.textContent = stamps[n - 1] + ' UTC 開盤 / ' + ksts[n - 1] + ' KST 開盤（已收盤 K 線）';
   document.querySelectorAll('[data-i]').forEach((node) => {{
     node.style.display = Number(node.getAttribute('data-i')) < n ? '' : 'none';
   }});
@@ -255,7 +277,11 @@ def svg_candles(bars, trades) -> str:
             parts.append(
                 f'<circle data-i="{i}" cx="{x(i):.2f}" cy="{y(bars[i].high) - 10:.2f}" r="4" fill="#b91c1c"/>'
             )
-    parts.append(f'<text x="{pad_l}" y="{height-8}" font-size="11" fill="#57534e">{bars[0].iso_utc()} → {bars[-1].iso_utc()}</text>')
+    parts.append(
+        f'<text x="{pad_l}" y="{height-8}" font-size="11" fill="#57534e">'
+        f'已收盤K線開盤 {bars[0].iso_utc()} / {bars[0].iso_kst()} → {bars[-1].iso_utc()} / {bars[-1].iso_kst()}'
+        f'</text>'
+    )
     parts.append("</svg>")
     return "".join(parts)
 

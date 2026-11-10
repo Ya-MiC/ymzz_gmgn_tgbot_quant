@@ -8,7 +8,14 @@ from pathlib import Path
 
 from ymzz_quant.catalog import DATASETS, ROOT, dataset_paths
 from ymzz_quant.costs import CostScenario, load_scenarios
-from ymzz_quant.data_adapters import load_ohlcv_files, parse_polymarket_prices, parse_pool_trades
+from ymzz_quant.data_adapters import (
+    closed_probability_points,
+    fetched_at_unix,
+    load_ohlcv_files,
+    parse_polymarket_prices,
+    parse_pool_trades,
+    parse_utc_stamp,
+)
 from ymzz_quant.engine import RunResult, run_backtest
 from ymzz_quant.indicators import rsi_wilder
 
@@ -28,6 +35,10 @@ def load_bars(dataset_key: str, root: Path | None = None):
         "invalid_bars": loaded.invalid_bars,
         "duplicate_timestamps": loaded.duplicate_timestamps,
         "bar_count": len(loaded.bars),
+        "dropped_unclosed": loaded.dropped_unclosed,
+        "unclosed_bar_count": len(loaded.dropped_unclosed),
+        "partial_bars_included": False,
+        "bar_count_note": "fully closed bars only; the candle open timestamp plus the interval must be at or before that file's fetch time",
     }
     return loaded.bars, meta
 
@@ -95,8 +106,12 @@ def polymarket_summary(root: Path | None = None) -> dict:
     if not path.exists():
         return {"available": False, "reason": "no polymarket cache"}
     payload = json.loads(path.read_text(encoding="utf-8"))
-    points = parse_polymarket_prices(payload)
+    raw_points = parse_polymarket_prices(payload)
     ref = json.loads(ref_path.read_text(encoding="utf-8")) if ref_path.exists() else {}
+    fetched = fetched_at_unix(path)
+    if fetched is None:
+        fetched = parse_utc_stamp(ref.get("fetched_at_utc"))
+    points, dropped_points = closed_probability_points(raw_points, fetched)
     prices = [p["price"] for p in points]
     closes = prices
     prob_rsi = rsi_wilder(closes, 14) if len(closes) > 20 else []
@@ -112,6 +127,9 @@ def polymarket_summary(root: Path | None = None) -> dict:
         "fetched_at_utc": ref.get("fetched_at_utc"),
         "fetched_at_kst": ref.get("fetched_at_kst"),
         "points": len(points),
+        "raw_points": len(raw_points),
+        "dropped_unclosed": dropped_points,
+        "unclosed_point_count": len(dropped_points),
         "start_ts": points[0]["timestamp"] if points else None,
         "end_ts": points[-1]["timestamp"] if points else None,
         "min_price": min(prices) if prices else None,
@@ -119,7 +137,7 @@ def polymarket_summary(root: Path | None = None) -> dict:
         "last_price": prices[-1] if prices else None,
         "has_more": (payload.get("pagination") or {}).get("has_more"),
         "prob_rsi_last": next((v for v in reversed(prob_rsi) if v is not None), None) if prob_rsi else None,
-        "note": "機率不是代幣美元報酬。此處只檢視，不與 $10 meme 帳戶合併，也不用代幣 RSI 規則下單。",
+        "note": "機率不是代幣美元報酬。圖上只用抓取時已經結束的機率桶。resolution_seconds 為 0 的終端報價不是已收盤桶，已排除。此處只檢視，不與 $10 meme 帳戶合併，也不用代幣 RSI 規則下單。",
         "series": points,
     }
 

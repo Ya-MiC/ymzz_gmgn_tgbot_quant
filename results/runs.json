@@ -1,6 +1,6 @@
 {
-  "generated_at_kst": "2026-11-10T11:42:12+0900",
-  "generated_at_utc": "2026-11-10T02:42:12Z",
+  "generated_at_kst": "2026-11-10T12:09:39+0900",
+  "generated_at_utc": "2026-11-10T03:09:39Z",
   "runs": {
     "wif_daily|conservative_no_trade": {
       "dataset_key": "wif_daily",
@@ -30,8 +30,15 @@
         "proposed_max_drawdown_frac": 0.2,
         "proposed_max_drawdown_is_user_specified": false,
         "execution_mode": "manual_tg_next_open",
+        "require_known_pool_fee": true,
+        "require_historical_sellability": true,
+        "require_historical_liquidity": true,
+        "historical_sellability_known": false,
+        "historical_liquidity_known": false,
+        "budget_gate_disabled": false,
         "no_reentry": true,
         "no_reentry_role": "provisional_setting_not_a_fourth_indicator",
+        "no_reentry_effect": "After the first exit, every later entry on this pool is blocked for the rest of the run, including validation and held-out. That suppression is deliberate and provisional. It is not first-wave detection and it is not a validated out-of-sample strategy.",
         "k_sl": 1.5,
         "k_tp": 2.0,
         "rsi_low": 25.0,
@@ -49,7 +56,7 @@
         "replenishment": false
       },
       "bars_meta": {
-        "bars": 364,
+        "bars": 363,
         "gaps": [],
         "start": {
           "ts": 1762905600,
@@ -57,10 +64,18 @@
           "kst": "2025-11-12T09:00:00+0900"
         },
         "end": {
+          "ts": 1794182400,
+          "utc": "2026-11-09T00:00:00Z",
+          "kst": "2026-11-09T09:00:00+0900"
+        },
+        "end_close": {
           "ts": 1794268800,
           "utc": "2026-11-10T00:00:00Z",
           "kst": "2026-11-10T09:00:00+0900"
         },
+        "bar_time_is": "open_of_closed_candle",
+        "partial_bars_included": false,
+        "unclosed_bar_count": 1,
         "expected_interval_seconds": 86400,
         "sha256": "96e234f0a14433c0d5dc3c6220c93c348100167dbea92210a037d2949383b17a",
         "sources": [
@@ -84,6 +99,7 @@
           "interval_label": "1d",
           "source_template": "https://api.geckoterminal.com/api/v2/networks/solana/pools/{pool}/ohlcv/day?aggregate=1&limit=1000&currency=usd",
           "bias": "Survivor and selected-pool bias. Chosen by exact ticker, pool age before 2026-05-01, then longest coverage, then higher reserve. Not chosen by return. Dead pools absent from search are missing.",
+          "bias_zh": "倖存者與選定池偏差。先對名稱、池齡、覆蓋長度與儲備排序，沒有用報酬挑選。已經消失的池不會出現在搜尋裡。",
           "gaps": [],
           "gap_count": 0,
           "sha256": "96e234f0a14433c0d5dc3c6220c93c348100167dbea92210a037d2949383b17a",
@@ -93,28 +109,48 @@
           ],
           "invalid_bars": 0,
           "duplicate_timestamps": 1,
-          "bar_count": 364
+          "bar_count": 363,
+          "dropped_unclosed": [
+            {
+              "ts": 1794268800,
+              "utc": "2026-11-10T00:00:00Z",
+              "kst": "2026-11-10T09:00:00+0900",
+              "close_ts": 1794355200,
+              "close_utc": "2026-11-11T00:00:00Z",
+              "close_kst": "2026-11-11T09:00:00+0900",
+              "fetched_at_unix": 1794277702,
+              "fetched_at_utc": "2026-11-10T02:28:22Z",
+              "interval_seconds": 86400,
+              "sources": [
+                "/workspace/data/cache/gt_ohlcv_day_EP2ib6dY.json"
+              ],
+              "reason": "unclosed_at_fetch"
+            }
+          ],
+          "unclosed_bar_count": 1,
+          "partial_bars_included": false,
+          "bar_count_note": "fully closed bars only; the candle open timestamp plus the interval must be at or before that file's fetch time"
         }
       },
       "split": {
         "start_ts": 1762905600,
-        "end_ts": 1794268800,
-        "train_end_exclusive_ts": 1778587200.0,
-        "validation_end_exclusive_ts": 1786428000.0,
+        "end_ts": 1794182400,
+        "train_end_exclusive_ts": 1778544000.0,
+        "validation_end_exclusive_ts": 1786363200.0,
         "train_frac": 0.5,
         "val_frac": 0.25,
         "heldout_frac": 0.25,
         "rule": "50/25/25 of the actual fetched timestamp span; not chosen from returns",
         "counts": {
-          "train": 182,
+          "train": 181,
           "validation": 91,
           "heldout": 91
         }
       },
       "frozen_atr_band": {
-        "low": 0.07032647374357574,
-        "high": 0.1116801645467396,
-        "train_samples": 168,
+        "low": 0.07021804536196354,
+        "high": 0.11168761392166164,
+        "train_samples": 167,
         "quantile_low": 0.2,
         "quantile_high": 0.9,
         "fit_on": "train_only"
@@ -127,7 +163,7 @@
         "unrealized_pnl": 0.0,
         "max_drawdown": 0.0,
         "max_drawdown_is_close_marked": true,
-        "sample_bars": 364,
+        "sample_bars": 363,
         "trade_count": 0,
         "closed_trade_count": 0,
         "open_trade_count": 0,
@@ -147,7 +183,11 @@
         "same_bar_sl_first_count": 0,
         "execution_residual_entry_mean": null,
         "execution_residual_exit_mean": null,
-        "proposed_controls_not_user_specified": true
+        "proposed_controls_not_user_specified": true,
+        "train_trade_count": 0,
+        "validation_trade_count": 0,
+        "heldout_trade_count": 0,
+        "exit_fixed_fee_covered_by_entry_cash": true
       },
       "benchmarks": {
         "cash": {
@@ -2626,7 +2666,7 @@
           "close": 0.2217804110026505,
           "drawdown": 0.0,
           "drawdown_paused": false,
-          "segment": "train",
+          "segment": "validation",
           "unrealized": 0.0
         },
         {
@@ -3809,7 +3849,7 @@
           "close": 0.14022099050595524,
           "drawdown": 0.0,
           "drawdown_paused": false,
-          "segment": "validation",
+          "segment": "heldout",
           "unrealized": 0.0
         },
         {
@@ -4981,22 +5021,9 @@
           "drawdown_paused": false,
           "segment": "heldout",
           "unrealized": 0.0
-        },
-        {
-          "ts": 1794268800,
-          "utc": "2026-11-10T00:00:00Z",
-          "kst": "2026-11-10T09:00:00+0900",
-          "equity": 10.0,
-          "cash": 10.0,
-          "qty": 0.0,
-          "close": 0.15665745929084665,
-          "drawdown": 0.0,
-          "drawdown_paused": false,
-          "segment": "heldout",
-          "unrealized": 0.0
         }
       ],
-      "config_sha256": "9d7db7e0f509d1533177d3ed472fec5f0d9289359283469eac3490db40772096",
+      "config_sha256": "9a49ad8b2742452fad7d6e40d686f012dd8d843cb3a94f44b98efefa3556181d",
       "synthetic": false,
       "badge": "SIMULATED_PNL_ON_REAL_PRICES",
       "indicators_omitted": true
@@ -5005,7 +5032,7 @@
       "dataset_key": "wif_daily",
       "scenario": {
         "name": "exploratory_ohlcv_only",
-        "label_zh": "探索實驗：放寬 OHLCV 無法核實的安全閘；池費是假設值，不是完整安全策略",
+        "label_zh": "放寬實驗：不是完整風控策略。單筆預算是 $3 不是 $0.10，池費是假設值",
         "gmgn_fee_rate_per_side": 0.01,
         "pool_fee_rate_per_side": 0.003,
         "pool_fee_status": "ASSUMED_because_geckoterminal_pool_fee_percentage_was_null",
@@ -5029,8 +5056,15 @@
         "proposed_max_drawdown_frac": 0.2,
         "proposed_max_drawdown_is_user_specified": false,
         "execution_mode": "manual_tg_next_open",
+        "require_known_pool_fee": true,
+        "require_historical_sellability": false,
+        "require_historical_liquidity": false,
+        "historical_sellability_known": false,
+        "historical_liquidity_known": false,
+        "budget_gate_disabled": false,
         "no_reentry": true,
         "no_reentry_role": "provisional_setting_not_a_fourth_indicator",
+        "no_reentry_effect": "After the first exit, every later entry on this pool is blocked for the rest of the run, including validation and held-out. That suppression is deliberate and provisional. It is not first-wave detection and it is not a validated out-of-sample strategy.",
         "k_sl": 1.5,
         "k_tp": 2.0,
         "rsi_low": 25.0,
@@ -5048,7 +5082,7 @@
         "replenishment": false
       },
       "bars_meta": {
-        "bars": 364,
+        "bars": 363,
         "gaps": [],
         "start": {
           "ts": 1762905600,
@@ -5056,10 +5090,18 @@
           "kst": "2025-11-12T09:00:00+0900"
         },
         "end": {
+          "ts": 1794182400,
+          "utc": "2026-11-09T00:00:00Z",
+          "kst": "2026-11-09T09:00:00+0900"
+        },
+        "end_close": {
           "ts": 1794268800,
           "utc": "2026-11-10T00:00:00Z",
           "kst": "2026-11-10T09:00:00+0900"
         },
+        "bar_time_is": "open_of_closed_candle",
+        "partial_bars_included": false,
+        "unclosed_bar_count": 1,
         "expected_interval_seconds": 86400,
         "sha256": "96e234f0a14433c0d5dc3c6220c93c348100167dbea92210a037d2949383b17a",
         "sources": [
@@ -5083,6 +5125,7 @@
           "interval_label": "1d",
           "source_template": "https://api.geckoterminal.com/api/v2/networks/solana/pools/{pool}/ohlcv/day?aggregate=1&limit=1000&currency=usd",
           "bias": "Survivor and selected-pool bias. Chosen by exact ticker, pool age before 2026-05-01, then longest coverage, then higher reserve. Not chosen by return. Dead pools absent from search are missing.",
+          "bias_zh": "倖存者與選定池偏差。先對名稱、池齡、覆蓋長度與儲備排序，沒有用報酬挑選。已經消失的池不會出現在搜尋裡。",
           "gaps": [],
           "gap_count": 0,
           "sha256": "96e234f0a14433c0d5dc3c6220c93c348100167dbea92210a037d2949383b17a",
@@ -5092,28 +5135,48 @@
           ],
           "invalid_bars": 0,
           "duplicate_timestamps": 1,
-          "bar_count": 364
+          "bar_count": 363,
+          "dropped_unclosed": [
+            {
+              "ts": 1794268800,
+              "utc": "2026-11-10T00:00:00Z",
+              "kst": "2026-11-10T09:00:00+0900",
+              "close_ts": 1794355200,
+              "close_utc": "2026-11-11T00:00:00Z",
+              "close_kst": "2026-11-11T09:00:00+0900",
+              "fetched_at_unix": 1794277702,
+              "fetched_at_utc": "2026-11-10T02:28:22Z",
+              "interval_seconds": 86400,
+              "sources": [
+                "/workspace/data/cache/gt_ohlcv_day_EP2ib6dY.json"
+              ],
+              "reason": "unclosed_at_fetch"
+            }
+          ],
+          "unclosed_bar_count": 1,
+          "partial_bars_included": false,
+          "bar_count_note": "fully closed bars only; the candle open timestamp plus the interval must be at or before that file's fetch time"
         }
       },
       "split": {
         "start_ts": 1762905600,
-        "end_ts": 1794268800,
-        "train_end_exclusive_ts": 1778587200.0,
-        "validation_end_exclusive_ts": 1786428000.0,
+        "end_ts": 1794182400,
+        "train_end_exclusive_ts": 1778544000.0,
+        "validation_end_exclusive_ts": 1786363200.0,
         "train_frac": 0.5,
         "val_frac": 0.25,
         "heldout_frac": 0.25,
         "rule": "50/25/25 of the actual fetched timestamp span; not chosen from returns",
         "counts": {
-          "train": 182,
+          "train": 181,
           "validation": 91,
           "heldout": 91
         }
       },
       "frozen_atr_band": {
-        "low": 0.07032647374357574,
-        "high": 0.1116801645467396,
-        "train_samples": 168,
+        "low": 0.07021804536196354,
+        "high": 0.11168761392166164,
+        "train_samples": 167,
         "quantile_low": 0.2,
         "quantile_high": 0.9,
         "fit_on": "train_only"
@@ -5126,7 +5189,7 @@
         "unrealized_pnl": 0.0,
         "max_drawdown": 0.12270810095166507,
         "max_drawdown_is_close_marked": true,
-        "sample_bars": 364,
+        "sample_bars": 363,
         "trade_count": 1,
         "closed_trade_count": 1,
         "open_trade_count": 0,
@@ -5146,7 +5209,11 @@
         "same_bar_sl_first_count": 0,
         "execution_residual_entry_mean": 0.0005689599895476183,
         "execution_residual_exit_mean": 0.0006669440022324946,
-        "proposed_controls_not_user_specified": true
+        "proposed_controls_not_user_specified": true,
+        "train_trade_count": 1,
+        "validation_trade_count": 0,
+        "heldout_trade_count": 0,
+        "exit_fixed_fee_covered_by_entry_cash": true
       },
       "benchmarks": {
         "cash": {
@@ -5157,8 +5224,8 @@
         "buy_and_hold": {
           "status": "marked_unrealized_at_end",
           "note": "買入後持有到最後收盤。期末是未實現市值，未扣賣出費用，不是成交。",
-          "final_equity_usd": 6.398074344324394,
-          "total_return": -0.36019256556756063,
+          "final_equity_usd": 6.40275002797716,
+          "total_return": -0.359724997202284,
           "max_drawdown": 0.4002315368269228,
           "entry_fill_ts": 1764201600,
           "fees_ignored_on_exit": true
@@ -7641,7 +7708,7 @@
           "close": 0.2217804110026505,
           "drawdown": 0.050729654411807934,
           "drawdown_paused": false,
-          "segment": "train",
+          "segment": "validation",
           "unrealized": 0.0
         },
         {
@@ -8824,7 +8891,7 @@
           "close": 0.14022099050595524,
           "drawdown": 0.050729654411807934,
           "drawdown_paused": false,
-          "segment": "validation",
+          "segment": "heldout",
           "unrealized": 0.0
         },
         {
@@ -9996,22 +10063,9 @@
           "drawdown_paused": false,
           "segment": "heldout",
           "unrealized": 0.0
-        },
-        {
-          "ts": 1794268800,
-          "utc": "2026-11-10T00:00:00Z",
-          "kst": "2026-11-10T09:00:00+0900",
-          "equity": 9.85476051941145,
-          "cash": 9.85476051941145,
-          "qty": 0.0,
-          "close": 0.15665745929084665,
-          "drawdown": 0.050729654411807934,
-          "drawdown_paused": false,
-          "segment": "heldout",
-          "unrealized": 0.0
         }
       ],
-      "config_sha256": "343a7d41213292f94c6257cfb9186f958de42fd8c2a045442388fd9b39103c0e",
+      "config_sha256": "92693c5af741aeb669a5633ed78507bdfa42b01f6739cb5b6372c5d3f441ca5d",
       "synthetic": false,
       "badge": "SIMULATED_PNL_ON_REAL_PRICES",
       "indicators_omitted": true
@@ -10044,8 +10098,15 @@
         "proposed_max_drawdown_frac": 0.2,
         "proposed_max_drawdown_is_user_specified": false,
         "execution_mode": "manual_tg_next_open",
+        "require_known_pool_fee": true,
+        "require_historical_sellability": true,
+        "require_historical_liquidity": true,
+        "historical_sellability_known": false,
+        "historical_liquidity_known": false,
+        "budget_gate_disabled": false,
         "no_reentry": true,
         "no_reentry_role": "provisional_setting_not_a_fourth_indicator",
+        "no_reentry_effect": "After the first exit, every later entry on this pool is blocked for the rest of the run, including validation and held-out. That suppression is deliberate and provisional. It is not first-wave detection and it is not a validated out-of-sample strategy.",
         "k_sl": 1.5,
         "k_tp": 2.0,
         "rsi_low": 25.0,
@@ -10063,7 +10124,7 @@
         "replenishment": false
       },
       "bars_meta": {
-        "bars": 184,
+        "bars": 183,
         "gaps": [],
         "start": {
           "ts": 1778457600,
@@ -10071,10 +10132,18 @@
           "kst": "2026-05-11T09:00:00+0900"
         },
         "end": {
+          "ts": 1794182400,
+          "utc": "2026-11-09T00:00:00Z",
+          "kst": "2026-11-09T09:00:00+0900"
+        },
+        "end_close": {
           "ts": 1794268800,
           "utc": "2026-11-10T00:00:00Z",
           "kst": "2026-11-10T09:00:00+0900"
         },
+        "bar_time_is": "open_of_closed_candle",
+        "partial_bars_included": false,
+        "unclosed_bar_count": 1,
         "expected_interval_seconds": 86400,
         "sha256": "e1ca0433fc82b5d8c6eaee95dc8bfc8f6501e9220870f42b031c8ab9ac051f03",
         "sources": [
@@ -10096,6 +10165,7 @@
           "interval_label": "1d",
           "source_template": "https://api.geckoterminal.com/api/v2/networks/solana/pools/{pool}/ohlcv/day?aggregate=1&limit=1000&currency=usd",
           "bias": "Deep major pair. Plumbing only.",
+          "bias_zh": "深度主流交易對，只做管線基準，不能當成 meme 績效。",
           "gaps": [],
           "gap_count": 0,
           "sha256": "e1ca0433fc82b5d8c6eaee95dc8bfc8f6501e9220870f42b031c8ab9ac051f03",
@@ -10104,28 +10174,48 @@
           ],
           "invalid_bars": 0,
           "duplicate_timestamps": 0,
-          "bar_count": 184
+          "bar_count": 183,
+          "dropped_unclosed": [
+            {
+              "ts": 1794268800,
+              "utc": "2026-11-10T00:00:00Z",
+              "kst": "2026-11-10T09:00:00+0900",
+              "close_ts": 1794355200,
+              "close_utc": "2026-11-11T00:00:00Z",
+              "close_kst": "2026-11-11T09:00:00+0900",
+              "fetched_at_unix": 1794277634,
+              "fetched_at_utc": "2026-11-10T02:27:14Z",
+              "interval_seconds": 86400,
+              "sources": [
+                "/workspace/data/cache/gt_ohlcv_day_Czfq3xZZ.json"
+              ],
+              "reason": "unclosed_at_fetch"
+            }
+          ],
+          "unclosed_bar_count": 1,
+          "partial_bars_included": false,
+          "bar_count_note": "fully closed bars only; the candle open timestamp plus the interval must be at or before that file's fetch time"
         }
       },
       "split": {
         "start_ts": 1778457600,
-        "end_ts": 1794268800,
-        "train_end_exclusive_ts": 1786363200.0,
-        "validation_end_exclusive_ts": 1790316000.0,
+        "end_ts": 1794182400,
+        "train_end_exclusive_ts": 1786320000.0,
+        "validation_end_exclusive_ts": 1790251200.0,
         "train_frac": 0.5,
         "val_frac": 0.25,
         "heldout_frac": 0.25,
         "rule": "50/25/25 of the actual fetched timestamp span; not chosen from returns",
         "counts": {
-          "train": 92,
+          "train": 91,
           "validation": 46,
           "heldout": 46
         }
       },
       "frozen_atr_band": {
-        "low": 0.043183467293357355,
-        "high": 0.0629808416112812,
-        "train_samples": 78,
+        "low": 0.043359074336394715,
+        "high": 0.06325983587875073,
+        "train_samples": 77,
         "quantile_low": 0.2,
         "quantile_high": 0.9,
         "fit_on": "train_only"
@@ -10138,7 +10228,7 @@
         "unrealized_pnl": 0.0,
         "max_drawdown": 0.0,
         "max_drawdown_is_close_marked": true,
-        "sample_bars": 184,
+        "sample_bars": 183,
         "trade_count": 0,
         "closed_trade_count": 0,
         "open_trade_count": 0,
@@ -10158,7 +10248,11 @@
         "same_bar_sl_first_count": 0,
         "execution_residual_entry_mean": null,
         "execution_residual_exit_mean": null,
-        "proposed_controls_not_user_specified": true
+        "proposed_controls_not_user_specified": true,
+        "train_trade_count": 0,
+        "validation_trade_count": 0,
+        "heldout_trade_count": 0,
+        "exit_fixed_fee_covered_by_entry_cash": true
       },
       "benchmarks": {
         "cash": {
@@ -11383,7 +11477,7 @@
           "close": 76.11018936268405,
           "drawdown": 0.0,
           "drawdown_paused": false,
-          "segment": "train",
+          "segment": "validation",
           "unrealized": 0.0
         },
         {
@@ -11981,7 +12075,7 @@
           "close": 122.458261789015,
           "drawdown": 0.0,
           "drawdown_paused": false,
-          "segment": "validation",
+          "segment": "heldout",
           "unrealized": 0.0
         },
         {
@@ -12568,22 +12662,9 @@
           "drawdown_paused": false,
           "segment": "heldout",
           "unrealized": 0.0
-        },
-        {
-          "ts": 1794268800,
-          "utc": "2026-11-10T00:00:00Z",
-          "kst": "2026-11-10T09:00:00+0900",
-          "equity": 10.0,
-          "cash": 10.0,
-          "qty": 0.0,
-          "close": 86.0507122669246,
-          "drawdown": 0.0,
-          "drawdown_paused": false,
-          "segment": "heldout",
-          "unrealized": 0.0
         }
       ],
-      "config_sha256": "c4e29145aca5156cecf3cab8fd8ab8369784cfdd5f336e28f7fe6d4c033c1e07",
+      "config_sha256": "5498bbb1bc6146d8eeca1a61abd5edf29f16693fdb5239cf196f172bfdb88ca3",
       "synthetic": false,
       "badge": "SIMULATED_PNL_ON_REAL_PRICES",
       "indicators_omitted": true
@@ -12592,7 +12673,7 @@
       "dataset_key": "sol_usdc_daily",
       "scenario": {
         "name": "exploratory_ohlcv_only",
-        "label_zh": "探索實驗：放寬 OHLCV 無法核實的安全閘；池費是假設值，不是完整安全策略",
+        "label_zh": "放寬實驗：不是完整風控策略。單筆預算是 $3 不是 $0.10，池費是假設值",
         "gmgn_fee_rate_per_side": 0.01,
         "pool_fee_rate_per_side": 0.003,
         "pool_fee_status": "ASSUMED_because_geckoterminal_pool_fee_percentage_was_null",
@@ -12616,8 +12697,15 @@
         "proposed_max_drawdown_frac": 0.2,
         "proposed_max_drawdown_is_user_specified": false,
         "execution_mode": "manual_tg_next_open",
+        "require_known_pool_fee": true,
+        "require_historical_sellability": false,
+        "require_historical_liquidity": false,
+        "historical_sellability_known": false,
+        "historical_liquidity_known": false,
+        "budget_gate_disabled": false,
         "no_reentry": true,
         "no_reentry_role": "provisional_setting_not_a_fourth_indicator",
+        "no_reentry_effect": "After the first exit, every later entry on this pool is blocked for the rest of the run, including validation and held-out. That suppression is deliberate and provisional. It is not first-wave detection and it is not a validated out-of-sample strategy.",
         "k_sl": 1.5,
         "k_tp": 2.0,
         "rsi_low": 25.0,
@@ -12635,7 +12723,7 @@
         "replenishment": false
       },
       "bars_meta": {
-        "bars": 184,
+        "bars": 183,
         "gaps": [],
         "start": {
           "ts": 1778457600,
@@ -12643,10 +12731,18 @@
           "kst": "2026-05-11T09:00:00+0900"
         },
         "end": {
+          "ts": 1794182400,
+          "utc": "2026-11-09T00:00:00Z",
+          "kst": "2026-11-09T09:00:00+0900"
+        },
+        "end_close": {
           "ts": 1794268800,
           "utc": "2026-11-10T00:00:00Z",
           "kst": "2026-11-10T09:00:00+0900"
         },
+        "bar_time_is": "open_of_closed_candle",
+        "partial_bars_included": false,
+        "unclosed_bar_count": 1,
         "expected_interval_seconds": 86400,
         "sha256": "e1ca0433fc82b5d8c6eaee95dc8bfc8f6501e9220870f42b031c8ab9ac051f03",
         "sources": [
@@ -12668,6 +12764,7 @@
           "interval_label": "1d",
           "source_template": "https://api.geckoterminal.com/api/v2/networks/solana/pools/{pool}/ohlcv/day?aggregate=1&limit=1000&currency=usd",
           "bias": "Deep major pair. Plumbing only.",
+          "bias_zh": "深度主流交易對，只做管線基準，不能當成 meme 績效。",
           "gaps": [],
           "gap_count": 0,
           "sha256": "e1ca0433fc82b5d8c6eaee95dc8bfc8f6501e9220870f42b031c8ab9ac051f03",
@@ -12676,28 +12773,48 @@
           ],
           "invalid_bars": 0,
           "duplicate_timestamps": 0,
-          "bar_count": 184
+          "bar_count": 183,
+          "dropped_unclosed": [
+            {
+              "ts": 1794268800,
+              "utc": "2026-11-10T00:00:00Z",
+              "kst": "2026-11-10T09:00:00+0900",
+              "close_ts": 1794355200,
+              "close_utc": "2026-11-11T00:00:00Z",
+              "close_kst": "2026-11-11T09:00:00+0900",
+              "fetched_at_unix": 1794277634,
+              "fetched_at_utc": "2026-11-10T02:27:14Z",
+              "interval_seconds": 86400,
+              "sources": [
+                "/workspace/data/cache/gt_ohlcv_day_Czfq3xZZ.json"
+              ],
+              "reason": "unclosed_at_fetch"
+            }
+          ],
+          "unclosed_bar_count": 1,
+          "partial_bars_included": false,
+          "bar_count_note": "fully closed bars only; the candle open timestamp plus the interval must be at or before that file's fetch time"
         }
       },
       "split": {
         "start_ts": 1778457600,
-        "end_ts": 1794268800,
-        "train_end_exclusive_ts": 1786363200.0,
-        "validation_end_exclusive_ts": 1790316000.0,
+        "end_ts": 1794182400,
+        "train_end_exclusive_ts": 1786320000.0,
+        "validation_end_exclusive_ts": 1790251200.0,
         "train_frac": 0.5,
         "val_frac": 0.25,
         "heldout_frac": 0.25,
         "rule": "50/25/25 of the actual fetched timestamp span; not chosen from returns",
         "counts": {
-          "train": 92,
+          "train": 91,
           "validation": 46,
           "heldout": 46
         }
       },
       "frozen_atr_band": {
-        "low": 0.043183467293357355,
-        "high": 0.0629808416112812,
-        "train_samples": 78,
+        "low": 0.043359074336394715,
+        "high": 0.06325983587875073,
+        "train_samples": 77,
         "quantile_low": 0.2,
         "quantile_high": 0.9,
         "fit_on": "train_only"
@@ -12710,7 +12827,7 @@
         "unrealized_pnl": 0.0,
         "max_drawdown": 0.15198046897140854,
         "max_drawdown_is_close_marked": true,
-        "sample_bars": 184,
+        "sample_bars": 183,
         "trade_count": 1,
         "closed_trade_count": 1,
         "open_trade_count": 0,
@@ -12730,7 +12847,11 @@
         "same_bar_sl_first_count": 0,
         "execution_residual_entry_mean": 0.28677776367646857,
         "execution_residual_exit_mean": 0.25901382498487635,
-        "proposed_controls_not_user_specified": true
+        "proposed_controls_not_user_specified": true,
+        "train_trade_count": 0,
+        "validation_trade_count": 0,
+        "heldout_trade_count": 1,
+        "exit_fixed_fee_covered_by_entry_cash": true
       },
       "benchmarks": {
         "cash": {
@@ -12741,8 +12862,8 @@
         "buy_and_hold": {
           "status": "marked_unrealized_at_end",
           "note": "買入後持有到最後收盤。期末是未實現市值，未扣賣出費用，不是成交。",
-          "final_equity_usd": 9.54968825971432,
-          "total_return": -0.045031174028568044,
+          "final_equity_usd": 9.590608034673732,
+          "total_return": -0.04093919653262679,
           "max_drawdown": 0.1909720230366993,
           "entry_fill_ts": 1779753600,
           "fees_ignored_on_exit": true
@@ -13982,7 +14103,7 @@
           "close": 76.11018936268405,
           "drawdown": 0.0,
           "drawdown_paused": false,
-          "segment": "train",
+          "segment": "validation",
           "unrealized": 0.0
         },
         {
@@ -14580,7 +14701,7 @@
           "close": 122.458261789015,
           "drawdown": 0.0,
           "drawdown_paused": false,
-          "segment": "validation",
+          "segment": "heldout",
           "unrealized": 0.0
         },
         {
@@ -15167,22 +15288,9 @@
           "drawdown_paused": false,
           "segment": "heldout",
           "unrealized": 0.0
-        },
-        {
-          "ts": 1794268800,
-          "utc": "2026-11-10T00:00:00Z",
-          "kst": "2026-11-10T09:00:00+0900",
-          "equity": 8.480195310285914,
-          "cash": 8.480195310285914,
-          "qty": 0.0,
-          "close": 86.0507122669246,
-          "drawdown": 0.15198046897140854,
-          "drawdown_paused": false,
-          "segment": "heldout",
-          "unrealized": 0.0
         }
       ],
-      "config_sha256": "0b895f1f23f11a2b1ef1ba07a063fc78267ec15f966e31d4c9701bfd4ee85658",
+      "config_sha256": "ca7734a0467697bdaa8bb04d8ff485f8d74f8e22bae2f6a31e0049433c754f7e",
       "synthetic": false,
       "badge": "SIMULATED_PNL_ON_REAL_PRICES",
       "indicators_omitted": true
@@ -15215,8 +15323,15 @@
         "proposed_max_drawdown_frac": 0.2,
         "proposed_max_drawdown_is_user_specified": false,
         "execution_mode": "manual_tg_next_open",
+        "require_known_pool_fee": true,
+        "require_historical_sellability": true,
+        "require_historical_liquidity": true,
+        "historical_sellability_known": false,
+        "historical_liquidity_known": false,
+        "budget_gate_disabled": false,
         "no_reentry": true,
         "no_reentry_role": "provisional_setting_not_a_fourth_indicator",
+        "no_reentry_effect": "After the first exit, every later entry on this pool is blocked for the rest of the run, including validation and held-out. That suppression is deliberate and provisional. It is not first-wave detection and it is not a validated out-of-sample strategy.",
         "k_sl": 1.5,
         "k_tp": 2.0,
         "rsi_low": 25.0,
@@ -15234,7 +15349,7 @@
         "replenishment": false
       },
       "bars_meta": {
-        "bars": 184,
+        "bars": 183,
         "gaps": [],
         "start": {
           "ts": 1778457600,
@@ -15242,10 +15357,18 @@
           "kst": "2026-05-11T09:00:00+0900"
         },
         "end": {
+          "ts": 1794182400,
+          "utc": "2026-11-09T00:00:00Z",
+          "kst": "2026-11-09T09:00:00+0900"
+        },
+        "end_close": {
           "ts": 1794268800,
           "utc": "2026-11-10T00:00:00Z",
           "kst": "2026-11-10T09:00:00+0900"
         },
+        "bar_time_is": "open_of_closed_candle",
+        "partial_bars_included": false,
+        "unclosed_bar_count": 1,
         "expected_interval_seconds": 86400,
         "sha256": "5499ae614bf45ddfb194aef754f086b88bb1b3a349abfc305c505a29fd02898e",
         "sources": [
@@ -15267,6 +15390,7 @@
           "interval_label": "1d",
           "source_template": "https://api.geckoterminal.com/api/v2/networks/solana/pools/{pool}/ohlcv/day?aggregate=1&limit=1000&currency=usd",
           "bias": "Same survivor search. Not the reserve tie-break winner. First page only.",
+          "bias_zh": "同一個預先宣告的搜尋，不是儲備數最高的那一池。只有第一頁日線。",
           "gaps": [],
           "gap_count": 0,
           "sha256": "5499ae614bf45ddfb194aef754f086b88bb1b3a349abfc305c505a29fd02898e",
@@ -15275,28 +15399,48 @@
           ],
           "invalid_bars": 0,
           "duplicate_timestamps": 0,
-          "bar_count": 184
+          "bar_count": 183,
+          "dropped_unclosed": [
+            {
+              "ts": 1794268800,
+              "utc": "2026-11-10T00:00:00Z",
+              "kst": "2026-11-10T09:00:00+0900",
+              "close_ts": 1794355200,
+              "close_utc": "2026-11-11T00:00:00Z",
+              "close_kst": "2026-11-11T09:00:00+0900",
+              "fetched_at_unix": 1794277804,
+              "fetched_at_utc": "2026-11-10T02:30:04Z",
+              "interval_seconds": 86400,
+              "sources": [
+                "/workspace/data/cache/gt_ohlcv_day_5zpyutJu.json"
+              ],
+              "reason": "unclosed_at_fetch"
+            }
+          ],
+          "unclosed_bar_count": 1,
+          "partial_bars_included": false,
+          "bar_count_note": "fully closed bars only; the candle open timestamp plus the interval must be at or before that file's fetch time"
         }
       },
       "split": {
         "start_ts": 1778457600,
-        "end_ts": 1794268800,
-        "train_end_exclusive_ts": 1786363200.0,
-        "validation_end_exclusive_ts": 1790316000.0,
+        "end_ts": 1794182400,
+        "train_end_exclusive_ts": 1786320000.0,
+        "validation_end_exclusive_ts": 1790251200.0,
         "train_frac": 0.5,
         "val_frac": 0.25,
         "heldout_frac": 0.25,
         "rule": "50/25/25 of the actual fetched timestamp span; not chosen from returns",
         "counts": {
-          "train": 92,
+          "train": 91,
           "validation": 46,
           "heldout": 46
         }
       },
       "frozen_atr_band": {
-        "low": 0.07150078955470258,
-        "high": 0.10636648933105182,
-        "train_samples": 78,
+        "low": 0.07147684471803151,
+        "high": 0.1068097624323586,
+        "train_samples": 77,
         "quantile_low": 0.2,
         "quantile_high": 0.9,
         "fit_on": "train_only"
@@ -15309,7 +15453,7 @@
         "unrealized_pnl": 0.0,
         "max_drawdown": 0.0,
         "max_drawdown_is_close_marked": true,
-        "sample_bars": 184,
+        "sample_bars": 183,
         "trade_count": 0,
         "closed_trade_count": 0,
         "open_trade_count": 0,
@@ -15329,7 +15473,11 @@
         "same_bar_sl_first_count": 0,
         "execution_residual_entry_mean": null,
         "execution_residual_exit_mean": null,
-        "proposed_controls_not_user_specified": true
+        "proposed_controls_not_user_specified": true,
+        "train_trade_count": 0,
+        "validation_trade_count": 0,
+        "heldout_trade_count": 0,
+        "exit_fixed_fee_covered_by_entry_cash": true
       },
       "benchmarks": {
         "cash": {
@@ -16610,7 +16758,7 @@
           "close": 2.4328256809970304e-06,
           "drawdown": 0.0,
           "drawdown_paused": false,
-          "segment": "train",
+          "segment": "validation",
           "unrealized": 0.0
         },
         {
@@ -17208,7 +17356,7 @@
           "close": 3.7532700997375516e-06,
           "drawdown": 0.0,
           "drawdown_paused": false,
-          "segment": "validation",
+          "segment": "heldout",
           "unrealized": 0.0
         },
         {
@@ -17795,22 +17943,9 @@
           "drawdown_paused": false,
           "segment": "heldout",
           "unrealized": 0.0
-        },
-        {
-          "ts": 1794268800,
-          "utc": "2026-11-10T00:00:00Z",
-          "kst": "2026-11-10T09:00:00+0900",
-          "equity": 10.0,
-          "cash": 10.0,
-          "qty": 0.0,
-          "close": 2.8014542539437334e-06,
-          "drawdown": 0.0,
-          "drawdown_paused": false,
-          "segment": "heldout",
-          "unrealized": 0.0
         }
       ],
-      "config_sha256": "735d8b9c21d2722594d91b5c000a9c1e3df262090a1d038662e4f11461b53149",
+      "config_sha256": "8db012a917bb98f8a3f2489157f904b92c477e93b2ad7cfc6efaae80ac372a75",
       "synthetic": false,
       "badge": "SIMULATED_PNL_ON_REAL_PRICES",
       "indicators_omitted": true
@@ -17819,7 +17954,7 @@
       "dataset_key": "bonk_daily_appendix",
       "scenario": {
         "name": "exploratory_ohlcv_only",
-        "label_zh": "探索實驗：放寬 OHLCV 無法核實的安全閘；池費是假設值，不是完整安全策略",
+        "label_zh": "放寬實驗：不是完整風控策略。單筆預算是 $3 不是 $0.10，池費是假設值",
         "gmgn_fee_rate_per_side": 0.01,
         "pool_fee_rate_per_side": 0.003,
         "pool_fee_status": "ASSUMED_because_geckoterminal_pool_fee_percentage_was_null",
@@ -17843,8 +17978,15 @@
         "proposed_max_drawdown_frac": 0.2,
         "proposed_max_drawdown_is_user_specified": false,
         "execution_mode": "manual_tg_next_open",
+        "require_known_pool_fee": true,
+        "require_historical_sellability": false,
+        "require_historical_liquidity": false,
+        "historical_sellability_known": false,
+        "historical_liquidity_known": false,
+        "budget_gate_disabled": false,
         "no_reentry": true,
         "no_reentry_role": "provisional_setting_not_a_fourth_indicator",
+        "no_reentry_effect": "After the first exit, every later entry on this pool is blocked for the rest of the run, including validation and held-out. That suppression is deliberate and provisional. It is not first-wave detection and it is not a validated out-of-sample strategy.",
         "k_sl": 1.5,
         "k_tp": 2.0,
         "rsi_low": 25.0,
@@ -17862,7 +18004,7 @@
         "replenishment": false
       },
       "bars_meta": {
-        "bars": 184,
+        "bars": 183,
         "gaps": [],
         "start": {
           "ts": 1778457600,
@@ -17870,10 +18012,18 @@
           "kst": "2026-05-11T09:00:00+0900"
         },
         "end": {
+          "ts": 1794182400,
+          "utc": "2026-11-09T00:00:00Z",
+          "kst": "2026-11-09T09:00:00+0900"
+        },
+        "end_close": {
           "ts": 1794268800,
           "utc": "2026-11-10T00:00:00Z",
           "kst": "2026-11-10T09:00:00+0900"
         },
+        "bar_time_is": "open_of_closed_candle",
+        "partial_bars_included": false,
+        "unclosed_bar_count": 1,
         "expected_interval_seconds": 86400,
         "sha256": "5499ae614bf45ddfb194aef754f086b88bb1b3a349abfc305c505a29fd02898e",
         "sources": [
@@ -17895,6 +18045,7 @@
           "interval_label": "1d",
           "source_template": "https://api.geckoterminal.com/api/v2/networks/solana/pools/{pool}/ohlcv/day?aggregate=1&limit=1000&currency=usd",
           "bias": "Same survivor search. Not the reserve tie-break winner. First page only.",
+          "bias_zh": "同一個預先宣告的搜尋，不是儲備數最高的那一池。只有第一頁日線。",
           "gaps": [],
           "gap_count": 0,
           "sha256": "5499ae614bf45ddfb194aef754f086b88bb1b3a349abfc305c505a29fd02898e",
@@ -17903,28 +18054,48 @@
           ],
           "invalid_bars": 0,
           "duplicate_timestamps": 0,
-          "bar_count": 184
+          "bar_count": 183,
+          "dropped_unclosed": [
+            {
+              "ts": 1794268800,
+              "utc": "2026-11-10T00:00:00Z",
+              "kst": "2026-11-10T09:00:00+0900",
+              "close_ts": 1794355200,
+              "close_utc": "2026-11-11T00:00:00Z",
+              "close_kst": "2026-11-11T09:00:00+0900",
+              "fetched_at_unix": 1794277804,
+              "fetched_at_utc": "2026-11-10T02:30:04Z",
+              "interval_seconds": 86400,
+              "sources": [
+                "/workspace/data/cache/gt_ohlcv_day_5zpyutJu.json"
+              ],
+              "reason": "unclosed_at_fetch"
+            }
+          ],
+          "unclosed_bar_count": 1,
+          "partial_bars_included": false,
+          "bar_count_note": "fully closed bars only; the candle open timestamp plus the interval must be at or before that file's fetch time"
         }
       },
       "split": {
         "start_ts": 1778457600,
-        "end_ts": 1794268800,
-        "train_end_exclusive_ts": 1786363200.0,
-        "validation_end_exclusive_ts": 1790316000.0,
+        "end_ts": 1794182400,
+        "train_end_exclusive_ts": 1786320000.0,
+        "validation_end_exclusive_ts": 1790251200.0,
         "train_frac": 0.5,
         "val_frac": 0.25,
         "heldout_frac": 0.25,
         "rule": "50/25/25 of the actual fetched timestamp span; not chosen from returns",
         "counts": {
-          "train": 92,
+          "train": 91,
           "validation": 46,
           "heldout": 46
         }
       },
       "frozen_atr_band": {
-        "low": 0.07150078955470258,
-        "high": 0.10636648933105182,
-        "train_samples": 78,
+        "low": 0.07147684471803151,
+        "high": 0.1068097624323586,
+        "train_samples": 77,
         "quantile_low": 0.2,
         "quantile_high": 0.9,
         "fit_on": "train_only"
@@ -17937,7 +18108,7 @@
         "unrealized_pnl": 0.0,
         "max_drawdown": 0.16728344781479515,
         "max_drawdown_is_close_marked": true,
-        "sample_bars": 184,
+        "sample_bars": 183,
         "trade_count": 1,
         "closed_trade_count": 1,
         "open_trade_count": 0,
@@ -17957,7 +18128,11 @@
         "same_bar_sl_first_count": 0,
         "execution_residual_entry_mean": 1.4432698062820249e-08,
         "execution_residual_exit_mean": 1.2603146237535008e-08,
-        "proposed_controls_not_user_specified": true
+        "proposed_controls_not_user_specified": true,
+        "train_trade_count": 1,
+        "validation_trade_count": 0,
+        "heldout_trade_count": 0,
+        "exit_fixed_fee_covered_by_entry_cash": true
       },
       "benchmarks": {
         "cash": {
@@ -17968,8 +18143,8 @@
         "buy_and_hold": {
           "status": "marked_unrealized_at_end",
           "note": "買入後持有到最後收盤。期末是未實現市值，未扣賣出費用，不是成交。",
-          "final_equity_usd": 6.697660877576762,
-          "total_return": -0.3302339122423238,
+          "final_equity_usd": 6.693704544254061,
+          "total_return": -0.3306295455745939,
           "max_drawdown": 0.3790762301555269,
           "entry_fill_ts": 1779753600,
           "fees_ignored_on_exit": true
@@ -19258,7 +19433,7 @@
           "close": 2.4328256809970304e-06,
           "drawdown": 0.16728344781479515,
           "drawdown_paused": false,
-          "segment": "train",
+          "segment": "validation",
           "unrealized": 0.0
         },
         {
@@ -19856,7 +20031,7 @@
           "close": 3.7532700997375516e-06,
           "drawdown": 0.16728344781479515,
           "drawdown_paused": false,
-          "segment": "validation",
+          "segment": "heldout",
           "unrealized": 0.0
         },
         {
@@ -20443,22 +20618,9 @@
           "drawdown_paused": false,
           "segment": "heldout",
           "unrealized": 0.0
-        },
-        {
-          "ts": 1794268800,
-          "utc": "2026-11-10T00:00:00Z",
-          "kst": "2026-11-10T09:00:00+0900",
-          "equity": 8.327165521852049,
-          "cash": 8.327165521852049,
-          "qty": 0.0,
-          "close": 2.8014542539437334e-06,
-          "drawdown": 0.16728344781479515,
-          "drawdown_paused": false,
-          "segment": "heldout",
-          "unrealized": 0.0
         }
       ],
-      "config_sha256": "8ce571add0d9ebf9b05dd8f84ca67d20131c3b47c14bc46ab258eaaad0aae91e",
+      "config_sha256": "505dc5e45d53819c7f2262995cf6dc49403b6cb736ee6bc5f672f19f39f0c78b",
       "synthetic": false,
       "badge": "SIMULATED_PNL_ON_REAL_PRICES",
       "indicators_omitted": true
@@ -20491,8 +20653,15 @@
         "proposed_max_drawdown_frac": 0.2,
         "proposed_max_drawdown_is_user_specified": false,
         "execution_mode": "manual_tg_next_open",
+        "require_known_pool_fee": true,
+        "require_historical_sellability": true,
+        "require_historical_liquidity": true,
+        "historical_sellability_known": false,
+        "historical_liquidity_known": false,
+        "budget_gate_disabled": false,
         "no_reentry": true,
         "no_reentry_role": "provisional_setting_not_a_fourth_indicator",
+        "no_reentry_effect": "After the first exit, every later entry on this pool is blocked for the rest of the run, including validation and held-out. That suppression is deliberate and provisional. It is not first-wave detection and it is not a validated out-of-sample strategy.",
         "k_sl": 1.5,
         "k_tp": 2.0,
         "rsi_low": 25.0,
@@ -20510,7 +20679,7 @@
         "replenishment": false
       },
       "bars_meta": {
-        "bars": 184,
+        "bars": 183,
         "gaps": [],
         "start": {
           "ts": 1778457600,
@@ -20518,10 +20687,18 @@
           "kst": "2026-05-11T09:00:00+0900"
         },
         "end": {
+          "ts": 1794182400,
+          "utc": "2026-11-09T00:00:00Z",
+          "kst": "2026-11-09T09:00:00+0900"
+        },
+        "end_close": {
           "ts": 1794268800,
           "utc": "2026-11-10T00:00:00Z",
           "kst": "2026-11-10T09:00:00+0900"
         },
+        "bar_time_is": "open_of_closed_candle",
+        "partial_bars_included": false,
+        "unclosed_bar_count": 1,
         "expected_interval_seconds": 86400,
         "sha256": "3f3f239aaa182ca84bdd71507f08652fa5a75c9811838ede9af66637e4d0a949",
         "sources": [
@@ -20543,6 +20720,7 @@
           "interval_label": "1d",
           "source_template": "https://api.geckoterminal.com/api/v2/networks/solana/pools/{pool}/ohlcv/day?aggregate=1&limit=1000&currency=usd",
           "bias": "Mature POPCAT/SOL. A newer POPCAT/USDC pool was rejected for age, not for return.",
+          "bias_zh": "較早建立的 POPCAT/SOL。另一個較新的 POPCAT/USDC 因池齡被排除，不是因為報酬。",
           "gaps": [],
           "gap_count": 0,
           "sha256": "3f3f239aaa182ca84bdd71507f08652fa5a75c9811838ede9af66637e4d0a949",
@@ -20551,28 +20729,48 @@
           ],
           "invalid_bars": 0,
           "duplicate_timestamps": 0,
-          "bar_count": 184
+          "bar_count": 183,
+          "dropped_unclosed": [
+            {
+              "ts": 1794268800,
+              "utc": "2026-11-10T00:00:00Z",
+              "kst": "2026-11-10T09:00:00+0900",
+              "close_ts": 1794355200,
+              "close_utc": "2026-11-11T00:00:00Z",
+              "close_kst": "2026-11-11T09:00:00+0900",
+              "fetched_at_unix": 1794277817,
+              "fetched_at_utc": "2026-11-10T02:30:17Z",
+              "interval_seconds": 86400,
+              "sources": [
+                "/workspace/data/cache/gt_ohlcv_day_FRhB8L7Y.json"
+              ],
+              "reason": "unclosed_at_fetch"
+            }
+          ],
+          "unclosed_bar_count": 1,
+          "partial_bars_included": false,
+          "bar_count_note": "fully closed bars only; the candle open timestamp plus the interval must be at or before that file's fetch time"
         }
       },
       "split": {
         "start_ts": 1778457600,
-        "end_ts": 1794268800,
-        "train_end_exclusive_ts": 1786363200.0,
-        "validation_end_exclusive_ts": 1790316000.0,
+        "end_ts": 1794182400,
+        "train_end_exclusive_ts": 1786320000.0,
+        "validation_end_exclusive_ts": 1790251200.0,
         "train_frac": 0.5,
         "val_frac": 0.25,
         "heldout_frac": 0.25,
         "rule": "50/25/25 of the actual fetched timestamp span; not chosen from returns",
         "counts": {
-          "train": 92,
+          "train": 91,
           "validation": 46,
           "heldout": 46
         }
       },
       "frozen_atr_band": {
-        "low": 0.07594878140198397,
-        "high": 0.12816316295587205,
-        "train_samples": 78,
+        "low": 0.07621320987081578,
+        "high": 0.12862782536615208,
+        "train_samples": 77,
         "quantile_low": 0.2,
         "quantile_high": 0.9,
         "fit_on": "train_only"
@@ -20585,7 +20783,7 @@
         "unrealized_pnl": 0.0,
         "max_drawdown": 0.0,
         "max_drawdown_is_close_marked": true,
-        "sample_bars": 184,
+        "sample_bars": 183,
         "trade_count": 0,
         "closed_trade_count": 0,
         "open_trade_count": 0,
@@ -20605,7 +20803,11 @@
         "same_bar_sl_first_count": 0,
         "execution_residual_entry_mean": null,
         "execution_residual_exit_mean": null,
-        "proposed_controls_not_user_specified": true
+        "proposed_controls_not_user_specified": true,
+        "train_trade_count": 0,
+        "validation_trade_count": 0,
+        "heldout_trade_count": 0,
+        "exit_fixed_fee_covered_by_entry_cash": true
       },
       "benchmarks": {
         "cash": {
@@ -21858,7 +22060,7 @@
           "close": 0.04284350234755136,
           "drawdown": 0.0,
           "drawdown_paused": false,
-          "segment": "train",
+          "segment": "validation",
           "unrealized": 0.0
         },
         {
@@ -22456,7 +22658,7 @@
           "close": 0.060181154360104926,
           "drawdown": 0.0,
           "drawdown_paused": false,
-          "segment": "validation",
+          "segment": "heldout",
           "unrealized": 0.0
         },
         {
@@ -23043,22 +23245,9 @@
           "drawdown_paused": false,
           "segment": "heldout",
           "unrealized": 0.0
-        },
-        {
-          "ts": 1794268800,
-          "utc": "2026-11-10T00:00:00Z",
-          "kst": "2026-11-10T09:00:00+0900",
-          "equity": 10.0,
-          "cash": 10.0,
-          "qty": 0.0,
-          "close": 0.03422850701914523,
-          "drawdown": 0.0,
-          "drawdown_paused": false,
-          "segment": "heldout",
-          "unrealized": 0.0
         }
       ],
-      "config_sha256": "6993c5a18b41d8144955a64b30972c5c5674b16d91fb1554c52be236ec475410",
+      "config_sha256": "d076a75a8ebcbb25c46169110e919da01b02d7db0bf72cf327ad3a39de8eb06d",
       "synthetic": false,
       "badge": "SIMULATED_PNL_ON_REAL_PRICES",
       "indicators_omitted": true
@@ -23067,7 +23256,7 @@
       "dataset_key": "popcat_daily_appendix",
       "scenario": {
         "name": "exploratory_ohlcv_only",
-        "label_zh": "探索實驗：放寬 OHLCV 無法核實的安全閘；池費是假設值，不是完整安全策略",
+        "label_zh": "放寬實驗：不是完整風控策略。單筆預算是 $3 不是 $0.10，池費是假設值",
         "gmgn_fee_rate_per_side": 0.01,
         "pool_fee_rate_per_side": 0.003,
         "pool_fee_status": "ASSUMED_because_geckoterminal_pool_fee_percentage_was_null",
@@ -23091,8 +23280,15 @@
         "proposed_max_drawdown_frac": 0.2,
         "proposed_max_drawdown_is_user_specified": false,
         "execution_mode": "manual_tg_next_open",
+        "require_known_pool_fee": true,
+        "require_historical_sellability": false,
+        "require_historical_liquidity": false,
+        "historical_sellability_known": false,
+        "historical_liquidity_known": false,
+        "budget_gate_disabled": false,
         "no_reentry": true,
         "no_reentry_role": "provisional_setting_not_a_fourth_indicator",
+        "no_reentry_effect": "After the first exit, every later entry on this pool is blocked for the rest of the run, including validation and held-out. That suppression is deliberate and provisional. It is not first-wave detection and it is not a validated out-of-sample strategy.",
         "k_sl": 1.5,
         "k_tp": 2.0,
         "rsi_low": 25.0,
@@ -23110,7 +23306,7 @@
         "replenishment": false
       },
       "bars_meta": {
-        "bars": 184,
+        "bars": 183,
         "gaps": [],
         "start": {
           "ts": 1778457600,
@@ -23118,10 +23314,18 @@
           "kst": "2026-05-11T09:00:00+0900"
         },
         "end": {
+          "ts": 1794182400,
+          "utc": "2026-11-09T00:00:00Z",
+          "kst": "2026-11-09T09:00:00+0900"
+        },
+        "end_close": {
           "ts": 1794268800,
           "utc": "2026-11-10T00:00:00Z",
           "kst": "2026-11-10T09:00:00+0900"
         },
+        "bar_time_is": "open_of_closed_candle",
+        "partial_bars_included": false,
+        "unclosed_bar_count": 1,
         "expected_interval_seconds": 86400,
         "sha256": "3f3f239aaa182ca84bdd71507f08652fa5a75c9811838ede9af66637e4d0a949",
         "sources": [
@@ -23143,6 +23347,7 @@
           "interval_label": "1d",
           "source_template": "https://api.geckoterminal.com/api/v2/networks/solana/pools/{pool}/ohlcv/day?aggregate=1&limit=1000&currency=usd",
           "bias": "Mature POPCAT/SOL. A newer POPCAT/USDC pool was rejected for age, not for return.",
+          "bias_zh": "較早建立的 POPCAT/SOL。另一個較新的 POPCAT/USDC 因池齡被排除，不是因為報酬。",
           "gaps": [],
           "gap_count": 0,
           "sha256": "3f3f239aaa182ca84bdd71507f08652fa5a75c9811838ede9af66637e4d0a949",
@@ -23151,28 +23356,48 @@
           ],
           "invalid_bars": 0,
           "duplicate_timestamps": 0,
-          "bar_count": 184
+          "bar_count": 183,
+          "dropped_unclosed": [
+            {
+              "ts": 1794268800,
+              "utc": "2026-11-10T00:00:00Z",
+              "kst": "2026-11-10T09:00:00+0900",
+              "close_ts": 1794355200,
+              "close_utc": "2026-11-11T00:00:00Z",
+              "close_kst": "2026-11-11T09:00:00+0900",
+              "fetched_at_unix": 1794277817,
+              "fetched_at_utc": "2026-11-10T02:30:17Z",
+              "interval_seconds": 86400,
+              "sources": [
+                "/workspace/data/cache/gt_ohlcv_day_FRhB8L7Y.json"
+              ],
+              "reason": "unclosed_at_fetch"
+            }
+          ],
+          "unclosed_bar_count": 1,
+          "partial_bars_included": false,
+          "bar_count_note": "fully closed bars only; the candle open timestamp plus the interval must be at or before that file's fetch time"
         }
       },
       "split": {
         "start_ts": 1778457600,
-        "end_ts": 1794268800,
-        "train_end_exclusive_ts": 1786363200.0,
-        "validation_end_exclusive_ts": 1790316000.0,
+        "end_ts": 1794182400,
+        "train_end_exclusive_ts": 1786320000.0,
+        "validation_end_exclusive_ts": 1790251200.0,
         "train_frac": 0.5,
         "val_frac": 0.25,
         "heldout_frac": 0.25,
         "rule": "50/25/25 of the actual fetched timestamp span; not chosen from returns",
         "counts": {
-          "train": 92,
+          "train": 91,
           "validation": 46,
           "heldout": 46
         }
       },
       "frozen_atr_band": {
-        "low": 0.07594878140198397,
-        "high": 0.12816316295587205,
-        "train_samples": 78,
+        "low": 0.07621320987081578,
+        "high": 0.12862782536615208,
+        "train_samples": 77,
         "quantile_low": 0.2,
         "quantile_high": 0.9,
         "fit_on": "train_only"
@@ -23185,7 +23410,7 @@
         "unrealized_pnl": 0.0,
         "max_drawdown": 0.17661724461448003,
         "max_drawdown_is_close_marked": true,
-        "sample_bars": 184,
+        "sample_bars": 183,
         "trade_count": 1,
         "closed_trade_count": 1,
         "open_trade_count": 0,
@@ -23205,7 +23430,11 @@
         "same_bar_sl_first_count": 0,
         "execution_residual_entry_mean": 0.00016169878814156075,
         "execution_residual_exit_mean": 0.00013824721815433594,
-        "proposed_controls_not_user_specified": true
+        "proposed_controls_not_user_specified": true,
+        "train_trade_count": 1,
+        "validation_trade_count": 0,
+        "heldout_trade_count": 0,
+        "exit_fixed_fee_covered_by_entry_cash": true
       },
       "benchmarks": {
         "cash": {
@@ -23216,8 +23445,8 @@
         "buy_and_hold": {
           "status": "marked_unrealized_at_end",
           "note": "買入後持有到最後收盤。期末是未實現市值，未扣賣出費用，不是成交。",
-          "final_equity_usd": 7.45631591784602,
-          "total_return": -0.2543684082153981,
+          "final_equity_usd": 7.476080227944441,
+          "total_return": -0.25239197720555595,
           "max_drawdown": 0.2585912925685728,
           "entry_fill_ts": 1779753600,
           "fees_ignored_on_exit": true
@@ -24482,7 +24711,7 @@
           "close": 0.04284350234755136,
           "drawdown": 0.17661724461448003,
           "drawdown_paused": false,
-          "segment": "train",
+          "segment": "validation",
           "unrealized": 0.0
         },
         {
@@ -25080,7 +25309,7 @@
           "close": 0.060181154360104926,
           "drawdown": 0.17661724461448003,
           "drawdown_paused": false,
-          "segment": "validation",
+          "segment": "heldout",
           "unrealized": 0.0
         },
         {
@@ -25667,22 +25896,9 @@
           "drawdown_paused": false,
           "segment": "heldout",
           "unrealized": 0.0
-        },
-        {
-          "ts": 1794268800,
-          "utc": "2026-11-10T00:00:00Z",
-          "kst": "2026-11-10T09:00:00+0900",
-          "equity": 8.2338275538552,
-          "cash": 8.2338275538552,
-          "qty": 0.0,
-          "close": 0.03422850701914523,
-          "drawdown": 0.17661724461448003,
-          "drawdown_paused": false,
-          "segment": "heldout",
-          "unrealized": 0.0
         }
       ],
-      "config_sha256": "e125907fe15e42c82e8689f98d873c6a98f979228cefb0cecf4f0eb4a54240b7",
+      "config_sha256": "83629a014de45c54154084d3ae7051ae09e982046263b4f17a85d78d5c03bb10",
       "synthetic": false,
       "badge": "SIMULATED_PNL_ON_REAL_PRICES",
       "indicators_omitted": true
@@ -25827,15 +26043,25 @@
     "selection_bias": "first closed=false Gamma market at fetch time; not a strategy universe",
     "fetched_at_utc": "2026-11-10T02:30:58Z",
     "fetched_at_kst": "2026-11-10T11:30:58+0900",
-    "points": 912,
+    "points": 911,
+    "raw_points": 912,
+    "dropped_unclosed": [
+      {
+        "timestamp": 1794277834,
+        "price": 0.0175,
+        "resolution_seconds": 0,
+        "reason": "terminal_tick_not_a_closed_bucket"
+      }
+    ],
+    "unclosed_point_count": 1,
     "start_ts": 1751587200,
-    "end_ts": 1794277834,
+    "end_ts": 1794182400,
     "min_price": 0.0165,
     "max_price": 0.335,
-    "last_price": 0.0175,
+    "last_price": 0.0165,
     "has_more": false,
-    "prob_rsi_last": 34.660285917037896,
-    "note": "機率不是代幣美元報酬。此處只檢視，不與 $10 meme 帳戶合併，也不用代幣 RSI 規則下單。"
+    "prob_rsi_last": 30.19814542506272,
+    "note": "機率不是代幣美元報酬。圖上只用抓取時已經結束的機率桶。resolution_seconds 為 0 的終端報價不是已收盤桶，已排除。此處只檢視，不與 $10 meme 帳戶合併，也不用代幣 RSI 規則下單。"
   },
   "swaps": {
     "available": true,

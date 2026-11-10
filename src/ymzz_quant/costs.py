@@ -87,8 +87,19 @@ class CostScenario:
             "proposed_max_drawdown_frac": self.proposed_max_drawdown_frac,
             "proposed_max_drawdown_is_user_specified": False,
             "execution_mode": self.execution_mode,
+            "require_known_pool_fee": self.require_known_pool_fee,
+            "require_historical_sellability": self.require_historical_sellability,
+            "require_historical_liquidity": self.require_historical_liquidity,
+            "historical_sellability_known": self.historical_sellability_known,
+            "historical_liquidity_known": self.historical_liquidity_known,
+            "budget_gate_disabled": False,
             "no_reentry": self.no_reentry,
             "no_reentry_role": "provisional_setting_not_a_fourth_indicator",
+            "no_reentry_effect": (
+                "After the first exit, every later entry on this pool is blocked for the rest of the run, "
+                "including validation and held-out. That suppression is deliberate and provisional. "
+                "It is not first-wave detection and it is not a validated out-of-sample strategy."
+            ),
             "k_sl": self.k_sl,
             "k_tp": self.k_tp,
             "rsi_low": self.rsi_low,

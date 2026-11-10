@@ -15,8 +15,9 @@ import streamlit as st
 from plotly.subplots import make_subplots
 
 from ymzz_quant.catalog import DATASETS
-from ymzz_quant.service import load_bars, load_named_scenarios, polymarket_summary, recent_swaps
 from ymzz_quant.engine import run_backtest
+from ymzz_quant.report import scenario_diff_rows
+from ymzz_quant.service import load_bars, load_named_scenarios, polymarket_summary, recent_swaps
 
 st.set_page_config(page_title="晏銘湛箴_gmgn_tgbot量化策略", layout="wide")
 st.title("晏銘湛箴_gmgn_tgbot量化策略")
@@ -42,6 +43,36 @@ scenario_name = st.selectbox(
     format_func=lambda key: scenarios[key].label_zh,
 )
 base = scenarios[scenario_name]
+conservative = scenarios["conservative_no_trade"]
+exploratory = scenarios["exploratory_ohlcv_only"]
+if scenario_name == "exploratory_ohlcv_only":
+    st.warning(
+        "這是放寬實驗，不是完整風控策略，也不是已套用 $0.10 提議預算的策略。"
+        "單筆預算檢查沒有被關掉；`proposed_per_trade_loss_budget_usd` 從 0.10 改成 3.00，"
+        "可賣性閘與流動性閘從 true 改成 false，池費從 null 改成假設 0.003。"
+        "部位可以虧超過 $0.10。沒有為了獲利或更多成交去改這些數字。"
+    )
+with st.expander("保守預設與放寬實驗的登記差（不是完整風控策略）", expanded=True):
+    st.markdown(
+        "放寬實驗可以虧過提議的 $0.10，因為預算檢查仍開著，只是門檻從 **$0.10 改成 $3.00**。"
+        "來回鏈上費約 $0.86，已經大於 $0.10，所以保守預算即使打開其他閘也不會進場。"
+        "`no_reentry` 兩邊都是 true：第一筆出場後，同一池在這次回測結束前的新倉全部被擋下，驗證段與留出段都包括在內。"
+        "那是暫定開關故意抑制後續交易，不是第一波偵測，也不是已驗證的樣本外策略。"
+    )
+    diff = scenario_diff_rows(conservative.to_public_dict(), exploratory.to_public_dict())
+    st.dataframe(
+        [
+            {
+                "參數": row["label"],
+                "保守預設": row["conservative"],
+                "放寬實驗": row["exploratory"],
+                "比較": "不同" if row["changed"] else "相同",
+            }
+            for row in diff
+        ],
+        width="stretch",
+        hide_index=True,
+    )
 with st.expander("研究參數（偏離預設後，驗證與留出不再算未調參）", expanded=False):
     rsi_low = st.slider("RSI 下限", 0, 50, int(base.rsi_low))
     rsi_high = st.slider("RSI 上限", 10, 80, int(base.rsi_high))
@@ -53,7 +84,10 @@ with st.expander("研究參數（偏離預設後，驗證與留出不再算未�
     chain_index = min(range(len(chain_options)), key=lambda i: abs(chain_options[i] - base.chain_cost_sol_per_side))
     chain = st.selectbox("鏈上費 SOL／邊（建議值，不是協議最低）", chain_options, index=chain_index)
     fee_mode = st.radio("池費", ["沿用情境", "未知（不交易）", "假設 0.30%", "假設 1%"], horizontal=True)
-    no_reentry = st.checkbox("同一池不再進場（暫定設定，不是第四個指標）", value=base.no_reentry)
+    no_reentry = st.checkbox(
+        "同一池在本次回測結束前不再進場（暫定開關：第一筆出場後擋掉之後所有驗證段與留出段的新倉；不是第一波偵測，也不是已驗證的樣本外策略）",
+        value=base.no_reentry,
+    )
     execution = st.radio(
         "成交模型",
         ["manual_tg_next_open", "resting_stop_research"],
@@ -101,12 +135,24 @@ result = run_backtest(
 )
 metrics = result.metrics
 st.subheader(meta["symbol"])
+end_close = result.bars_meta.get("end_close") or result.bars_meta["end"]
 st.write(
     f"鏈 {meta['chain']} · 池 `{meta['pool']}` · 代幣 `{meta.get('base_token')}` · "
-    f"{meta['interval_label']} · {meta['bar_count']} 根 · 缺口 {meta['gap_count']} · "
-    f"{result.bars_meta['start']['utc']} / {result.bars_meta['start']['kst']} → "
-    f"{result.bars_meta['end']['utc']} / {result.bars_meta['end']['kst']}"
+    f"{meta['interval_label']} · 已收盤 {meta['bar_count']} 根 · 已排除未收盤 {meta.get('unclosed_bar_count', 0)} 根 · "
+    f"缺口 {meta['gap_count']} · "
+    f"第一根開盤 {result.bars_meta['start']['utc']} / {result.bars_meta['start']['kst']} · "
+    f"最後一根開盤 {result.bars_meta['end']['utc']} / {result.bars_meta['end']['kst']} · "
+    f"該根收盤 {end_close['utc']} / {end_close['kst']}"
 )
+dropped = meta.get("dropped_unclosed") or []
+if dropped:
+    detail = "；".join(
+        f"開盤 {row['utc']} / {row['kst']}，收盤 {row['close_utc']} / {row['close_kst']}，抓取 {row.get('fetched_at_utc')}"
+        for row in dropped
+    )
+    st.caption("未收盤、未畫進圖：" + detail + "。橫軸是已收盤 K 線的開盤時刻（UTC）。缺口 0 只表示這些已收盤 K 線彼此相接。")
+else:
+    st.caption("橫軸是已收盤 K 線的開盤時刻（UTC）。這次沒有再排除未收盤 K 線。")
 st.caption(meta.get("bias_zh") or meta["bias"])
 if metrics["zero_trades"]:
     st.info("這段沒有成交。期末仍是 $10，報酬 0。不要把空結果讀成獲利。")
@@ -134,7 +180,11 @@ st.caption(
 st.caption(
     f"SOL 快照 ${scenario.sol_usd:.2f} @ {scenario.sol_usd_fetched_at_kst}。"
     f" 預留 {scenario.wallet_reserve_sol} SOL ≈ ${scenario.reserve_usd:.2f}。"
-    f" 池費狀態 {scenario.pool_fee_status}。單筆預算 ${scenario.proposed_per_trade_loss_budget_usd} 與回撤 {scenario.proposed_max_drawdown_frac:.0%} 都是提議值，不是使用者指定。"
+    f" 池費狀態 {scenario.pool_fee_status}。這個畫面的單筆預算是 ${scenario.proposed_per_trade_loss_budget_usd}（提議值，不是使用者指定）。"
+    f" 回撤 {scenario.proposed_max_drawdown_frac:.0%} 也是提議值。"
+    f" 留出段成交 {metrics.get('heldout_trade_count', 0)} 筆。"
+    f" 成交模型 {scenario.execution_mode}，same-bar SL 次數 {metrics.get('same_bar_sl_first_count', 0)}。"
+    f" 最低現金 ${metrics['min_cash']:.4f}。"
 )
 
 frame = pd.DataFrame(
@@ -150,7 +200,7 @@ frame = pd.DataFrame(
     }
 )
 equity = pd.DataFrame(result.equity)
-last = st.slider("重播到第幾根（含）", 1, len(frame), len(frame))
+last = st.slider("重播到第幾根已收盤 K 線（含，時間是開盤）", 1, len(frame), len(frame))
 view = frame.iloc[:last]
 eq = equity.iloc[:last]
 fig = make_subplots(rows=4, cols=1, shared_xaxes=True, row_heights=[0.46, 0.18, 0.18, 0.18], vertical_spacing=0.03)

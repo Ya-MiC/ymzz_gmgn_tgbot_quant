@@ -281,6 +281,72 @@ def test_insufficient_ten_dollars_skips_and_drawdown_pause_and_no_reentry():
     assert blocked.metrics["min_cash"] >= -1e-9
 
 
+def test_manual_exit_ignores_high_low_and_exit_fee_stays_affordable():
+    bars = _flat()
+    bars[21] = Bar(bars[21].ts, 100, 9_999, 0.01, 100, 1000)
+    bars[22] = Bar(bars[22].ts, 100, 9_999, 0.01, 50, 1000)
+    bars[23] = Bar(bars[23].ts, 0.01, 9_999, 0.001, 0.01, 1000)
+    override = [False] * len(bars)
+    override[20] = True
+    scenario = _scenario(
+        wallet_reserve_sol=0.05,
+        chain_cost_sol_per_side=0.005,
+        sol_usd=100,
+        slip_bp_buy=30,
+        slip_bp_sell=30,
+        execution_mode="manual_tg_next_open",
+    )
+    assert scenario.reserve_usd > scenario.chain_fee_usd_per_side
+    result = run_backtest(bars, scenario, "synthetic", 86400, synthetic=True, synthetic_signal_override=override)
+    trade = [t for t in result.trades if t["status"] == "CLOSED"][0]
+    assert trade["entry_fill_index"] == 21
+    assert trade["entry_fill_px"] == pytest.approx(100 * 1.003)
+    assert trade["exit_signal_index"] == 22
+    assert trade["exit_fill_index"] == 23
+    assert trade["exit_reason"] == "stop_on_close_next_open"
+    assert trade["same_bar_sl"] is False
+    assert trade["exit_fill_px"] == pytest.approx(0.01 * (1 - 30 / 10000))
+    assert trade["exit_fill_px"] != pytest.approx(trade["entry_fill_px"] * (1 - scenario.k_sl * trade.get("atr_pct", 0)))
+    assert trade["chain_fees"] == pytest.approx(2 * scenario.chain_fee_usd_per_side)
+    assert trade["balance_clamped"] is False
+    for row in result.equity:
+        assert row["cash"] >= -1e-8
+        assert row["equity"] == pytest.approx(row["cash"] + row["qty"] * row["close"])
+    in_position = [row for row in result.equity if row["qty"] > 0]
+    assert in_position
+    assert min(row["cash"] for row in in_position) >= scenario.reserve_usd - 1e-6
+    assert result.metrics["final_equity_usd"] == pytest.approx(scenario.initial_cash_usd + trade["realized_pnl"])
+    assert result.metrics["same_bar_sl_first_count"] == 0
+    assert result.metrics["balance_clamp_events"] == 0
+    assert result.metrics["exit_fixed_fee_covered_by_entry_cash"] is True
+    assert result.metrics["heldout_trade_count"] == sum(1 for t in result.trades if t["segment"] == "heldout")
+
+
+def test_published_budget_gate_is_not_disabled_and_reserve_covers_chain_fee():
+    from ymzz_quant.service import load_named_scenarios
+
+    scenarios = load_named_scenarios()
+    conservative = scenarios["conservative_no_trade"]
+    exploratory = scenarios["exploratory_ohlcv_only"]
+    assert conservative.proposed_per_trade_loss_budget_usd == pytest.approx(0.1)
+    assert exploratory.proposed_per_trade_loss_budget_usd == pytest.approx(3.0)
+    assert conservative.to_public_dict()["budget_gate_disabled"] is False
+    assert exploratory.to_public_dict()["budget_gate_disabled"] is False
+    for scenario in (conservative, exploratory):
+        assert scenario.reserve_usd > scenario.chain_fee_usd_per_side
+        assert scenario.no_reentry is True
+        assert scenario.execution_mode == "manual_tg_next_open"
+        assert scenario.rsi_low == 25
+        assert scenario.k_sl == pytest.approx(1.5)
+    assert conservative.require_historical_sellability is True
+    assert exploratory.require_historical_sellability is False
+    assert conservative.require_historical_liquidity is True
+    assert exploratory.require_historical_liquidity is False
+    assert conservative.pool_fee_rate_per_side is None
+    assert exploratory.pool_fee_rate_per_side == pytest.approx(0.003)
+    assert "not first-wave detection" in exploratory.to_public_dict()["no_reentry_effect"]
+
+
 def test_costs_exceeding_cash_do_not_invent_sale_proceeds():
     bars = _flat(3)
     position = {

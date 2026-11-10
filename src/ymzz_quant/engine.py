@@ -330,6 +330,10 @@ def run_backtest(
         "execution_residual_entry_mean": _mean([t["entry_residual"] for t in trades if "entry_residual" in t]),
         "execution_residual_exit_mean": _mean([t["exit_residual"] for t in closed if t.get("exit_residual") is not None]),
         "proposed_controls_not_user_specified": True,
+        "train_trade_count": sum(1 for t in trades if t.get("segment") == "train"),
+        "validation_trade_count": sum(1 for t in trades if t.get("segment") == "validation"),
+        "heldout_trade_count": sum(1 for t in trades if t.get("segment") == "heldout"),
+        "exit_fixed_fee_covered_by_entry_cash": scenario.reserve_usd + 1e-9 >= scenario.chain_fee_usd_per_side,
     }
     benchmarks = {
         "cash": {"final_equity_usd": scenario.initial_cash_usd, "total_return": 0.0, "max_drawdown": 0.0},
@@ -343,11 +347,16 @@ def run_backtest(
         "synthetic": synthetic,
     }
     config_hash = hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest()
+    last_open = stamps[-1] if stamps else None
     meta = {
         "bars": n,
         "gaps": (dataset_meta or {}).get("gaps", []),
         "start": fmt_ts(stamps[0]) if stamps else None,
-        "end": fmt_ts(stamps[-1]) if stamps else None,
+        "end": fmt_ts(last_open) if last_open is not None else None,
+        "end_close": fmt_ts(last_open + expected_interval) if last_open is not None else None,
+        "bar_time_is": "open_of_closed_candle",
+        "partial_bars_included": False,
+        "unclosed_bar_count": int((dataset_meta or {}).get("unclosed_bar_count") or 0),
         "expected_interval_seconds": expected_interval,
         "sha256": (dataset_meta or {}).get("sha256"),
         "sources": (dataset_meta or {}).get("sources"),
@@ -479,6 +488,7 @@ def _execute_buy(i, bars, pending, scenario: CostScenario, cash, dataset_key, la
 
 
 def _manual_exit_reason(close, position, rsi, scenario: CostScenario):
+    """Close-only. The bar high and low are not execution prices in this mode."""
     if close <= position["sl"]:
         return "stop_on_close_next_open"
     if close >= position["tp"]:

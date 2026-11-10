@@ -38,7 +38,7 @@
       "rv_min": 1.5
     },
     "exploratory_ohlcv_only": {
-      "label_zh": "探索實驗：放寬 OHLCV 無法核實的安全閘；池費是假設值，不是完整安全策略",
+      "label_zh": "放寬實驗：不是完整風控策略。單筆預算是 $3 不是 $0.10，池費是假設值",
       "gmgn_fee_rate_per_side": 0.01,
       "pool_fee_rate_per_side": 0.003,
       "pool_fee_status": "ASSUMED_because_geckoterminal_pool_fee_percentage_was_null",
