@@ -1,0 +1,9 @@
+{
+  "url": "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd",
+  "bytes": 23,
+  "sha256": "2af1462e17cbe8e273059d1fdb5f735f815ffc175f115a7124d29b903661d9ff",
+  "file": "data/cache/coingecko_sol_usd.json",
+  "fetched_at_utc": "2026-11-10T02:27:01Z",
+  "fetched_at_kst": "2026-11-10T11:27:01+0900",
+  "status": 200
+}

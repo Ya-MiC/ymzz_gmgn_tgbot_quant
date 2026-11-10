@@ -1,0 +1,9 @@
+{
+  "url": "https://gamma-api.polymarket.com/markets?closed=false&limit=1",
+  "bytes": 6225,
+  "sha256": "545ec98a5a6c05c438b0f2dbdf19b078ffa452e50f8e231f9bf82677d480650b",
+  "file": "data/cache/polymarket_gamma_one_open_market.json",
+  "fetched_at_utc": "2026-11-10T02:30:57Z",
+  "fetched_at_kst": "2026-11-10T11:30:57+0900",
+  "status": 200
+}

@@ -1,0 +1,10 @@
+{
+  "url": "https://api.geckoterminal.com/api/v2/search/pools?query=wif&network=solana",
+  "bytes": 29154,
+  "sha256": "cb48ec720b60f17515f3aafc9eae01659759f8bd0c59f3f2ba3864a936e5771f",
+  "file": "data/cache/gt_search_wif.json",
+  "fetched_at_utc": "2026-11-10T02:27:42Z",
+  "fetched_at_kst": "2026-11-10T11:27:42+0900",
+  "status": 200,
+  "query": "wif"
+}

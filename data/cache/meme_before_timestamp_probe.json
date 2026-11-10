@@ -1,0 +1,14 @@
+{
+  "url": "https://api.geckoterminal.com/api/v2/networks/solana/pools/EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx/ohlcv/day?aggregate=1&limit=1000&currency=usd&before_timestamp=1778457600",
+  "stats": {
+    "bars": 181,
+    "newest_ts": 1778457600,
+    "oldest_ts": 1762905600,
+    "newest_utc": "2026-05-11T00:00:00Z",
+    "oldest_utc": "2025-11-12T00:00:00Z",
+    "span_days": 180.0
+  },
+  "status": 200,
+  "fetched_at_utc": "2026-11-10T02:30:31Z",
+  "fetched_at_kst": "2026-11-10T11:30:31+0900"
+}

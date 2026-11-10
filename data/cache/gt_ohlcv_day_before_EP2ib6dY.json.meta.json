@@ -1,0 +1,10 @@
+{
+  "url": "https://api.geckoterminal.com/api/v2/networks/solana/pools/EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx/ohlcv/day?aggregate=1&limit=1000&currency=usd&before_timestamp=1778457600",
+  "bytes": 20233,
+  "sha256": "d98589fe16ddff55c598991f5a68ac06027447b1fb7bc6d5eaacd58aa07bb6b9",
+  "file": "data/cache/gt_ohlcv_day_before_EP2ib6dY.json",
+  "fetched_at_utc": "2026-11-10T02:30:31Z",
+  "fetched_at_kst": "2026-11-10T11:30:31+0900",
+  "status": 200,
+  "purpose": "probe_whether_keyless_history_extends_before_first_page"
+}

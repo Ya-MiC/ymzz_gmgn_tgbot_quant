@@ -1,0 +1,11 @@
+{
+  "question": "Xi Jinping out before 2027?",
+  "condition_id": "0xa467b14d51f01b957109d9cbb1d6c124fab2a089d52ed8f471d23c2812e743b7",
+  "token_id_yes": "32338220190071351435772801779725302244575775216413325951443816017994629993401",
+  "outcomes": "[\"Yes\", \"No\"]",
+  "enable_order_book": true,
+  "selection": "first closed=false Gamma market at fetch time; not a strategy universe",
+  "pages": 1,
+  "fetched_at_utc": "2026-11-10T02:30:58Z",
+  "fetched_at_kst": "2026-11-10T11:30:58+0900"
+}

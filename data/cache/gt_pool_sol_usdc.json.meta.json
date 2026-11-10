@@ -1,0 +1,10 @@
+{
+  "url": "https://api.geckoterminal.com/api/v2/networks/solana/pools/Czfq3xZZDmsdGdUyrNLtRhGc47cXcZtLG4crryfu44zE",
+  "bytes": 1617,
+  "sha256": "3c6596ca71b701d3b677a532e1f16f53529a1238b7a3b44360dbddbb2acbd866",
+  "file": "data/cache/gt_pool_sol_usdc.json",
+  "fetched_at_utc": "2026-11-10T02:27:01Z",
+  "fetched_at_kst": "2026-11-10T11:27:01+0900",
+  "status": 200,
+  "role": "plumbing_baseline"
+}

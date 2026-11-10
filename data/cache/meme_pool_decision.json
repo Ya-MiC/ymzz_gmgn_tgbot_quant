@@ -1,0 +1,271 @@
+{
+  "criteria_file": "data/cache/selection_criteria.json",
+  "correction": "The first automated pass accepted fuzzy search hits (BERN ranked above Bonk). That pass is rejected. This decision uses exact ticker names and pool_created_at before 2026-05-01. Strategy returns were not computed before this correction.",
+  "rejected_false_positive_pool": {
+    "name": "BERN / SOL",
+    "address": "Ebbpz3PWLaQxj2oyK967RgEPbcPypjQCoZ3tpB4fwLsk",
+    "reason": "fuzzy search for bonk; not the BONK token"
+  },
+  "candidates_top_by_reserve": [
+    {
+      "id": "solana_5zpyutJu9ee6jFymDGoK7F6S5Kczqtc9FomP3ueKuyA9",
+      "name": "Bonk / SOL",
+      "address": "5zpyutJu9ee6jFymDGoK7F6S5Kczqtc9FomP3ueKuyA9",
+      "reserve_in_usd": 274685.3406,
+      "pool_created_at": "2023-07-05T14:41:09Z",
+      "base_token_symbol": null,
+      "quote_token_symbol": null,
+      "base_token_address": null,
+      "quote_token_address": null,
+      "dex": "orca",
+      "price_change_percentage": null,
+      "query": "bonk",
+      "search_rank_by_reserve": 1,
+      "exact_match_count": 13,
+      "rejected_examples": [
+        {
+          "name": "Bonk / USDC",
+          "address": "5Dp922oSaj9rdLHTxZzq1B7QV7KmwY7U7K1JNCRhc45J",
+          "reason": "created_inside_or_after_window",
+          "pool_created_at": "2026-06-16T19:28:58Z"
+        },
+        {
+          "name": "Bonk / SOL 0.25%",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "BONKAI / SOL",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "LetsBONK / SOL",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "BONKY / Bonk",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "BERN / SOL",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "SAVIOUR / SOL",
+          "reason": "fuzzy_or_different_ticker"
+        }
+      ],
+      "daily": {
+        "bars": 184,
+        "newest_ts": 1794268800,
+        "oldest_ts": 1778457600,
+        "newest_utc": "2026-11-10T00:00:00Z",
+        "oldest_utc": "2026-05-11T00:00:00Z",
+        "span_days": 183.0
+      }
+    },
+    {
+      "id": "solana_EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx",
+      "name": "$WIF / SOL",
+      "address": "EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx",
+      "reserve_in_usd": 4625709.1515,
+      "pool_created_at": "2023-11-20T20:10:04Z",
+      "base_token_symbol": null,
+      "quote_token_symbol": null,
+      "base_token_address": null,
+      "quote_token_address": null,
+      "dex": "raydium",
+      "price_change_percentage": null,
+      "query": "wif",
+      "search_rank_by_reserve": 1,
+      "exact_match_count": 5,
+      "rejected_examples": [
+        {
+          "name": "wifout / $WIF",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "swordcat / SOL",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "WIFE / SOL",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "swordcat / SOL",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "KWIF / SOL",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "WIF / SOL",
+          "address": "JTsSu7MiYCFAoMGNL9zwR2UzLCCJKNA6KpQJFQzppEx",
+          "reason": "created_inside_or_after_window",
+          "pool_created_at": "2026-11-01T02:33:36Z"
+        },
+        {
+          "name": "WIFLOAT / SOL",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "WIFORANGE / SOL",
+          "reason": "fuzzy_or_different_ticker"
+        }
+      ],
+      "daily": {
+        "bars": 184,
+        "newest_ts": 1794268800,
+        "oldest_ts": 1778457600,
+        "newest_utc": "2026-11-10T00:00:00Z",
+        "oldest_utc": "2026-05-11T00:00:00Z",
+        "span_days": 183.0
+      }
+    },
+    {
+      "id": "solana_FRhB8L7Y9Qq41qZXYLtC2nw8An1RJfLLxRF2x9RwLLMo",
+      "name": "POPCAT / SOL",
+      "address": "FRhB8L7Y9Qq41qZXYLtC2nw8An1RJfLLxRF2x9RwLLMo",
+      "reserve_in_usd": 2810820.856,
+      "pool_created_at": "2023-12-12T22:00:11Z",
+      "base_token_symbol": null,
+      "quote_token_symbol": null,
+      "base_token_address": null,
+      "quote_token_address": null,
+      "dex": "raydium",
+      "price_change_percentage": null,
+      "query": "popcat",
+      "search_rank_by_reserve": 1,
+      "exact_match_count": 8,
+      "rejected_examples": [
+        {
+          "name": "POPCAT / Coinomi",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "POPCAT / TOPCAT",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "POPCAT / POPDAT",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "POPCAT / $WIF",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "POPCAT / SPX",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "POPCAT / USDC",
+          "address": "GaDLUkaMH1XG784V1kny54BJnSHkrWuxESDsJ9kSEZ1f",
+          "reason": "created_inside_or_after_window",
+          "pool_created_at": "2026-05-25T09:43:13Z"
+        },
+        {
+          "name": "POPCAT / Fartcoin",
+          "reason": "fuzzy_or_different_ticker"
+        },
+        {
+          "name": "POPCAT / Fartcoin",
+          "reason": "fuzzy_or_different_ticker"
+        }
+      ],
+      "daily": {
+        "bars": 184,
+        "newest_ts": 1794268800,
+        "oldest_ts": 1778457600,
+        "newest_utc": "2026-11-10T00:00:00Z",
+        "oldest_utc": "2026-05-11T00:00:00Z",
+        "span_days": 183.0
+      }
+    }
+  ],
+  "qualified": [
+    {
+      "address": "EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx",
+      "name": "$WIF / SOL",
+      "span_days": 183.0,
+      "bars": 184
+    },
+    {
+      "address": "FRhB8L7Y9Qq41qZXYLtC2nw8An1RJfLLxRF2x9RwLLMo",
+      "name": "POPCAT / SOL",
+      "span_days": 183.0,
+      "bars": 184
+    },
+    {
+      "address": "5zpyutJu9ee6jFymDGoK7F6S5Kczqtc9FomP3ueKuyA9",
+      "name": "Bonk / SOL",
+      "span_days": 183.0,
+      "bars": 184
+    }
+  ],
+  "chosen": {
+    "id": "solana_EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx",
+    "name": "$WIF / SOL",
+    "address": "EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx",
+    "reserve_in_usd": 4625709.1515,
+    "pool_created_at": "2023-11-20T20:10:04Z",
+    "base_token_symbol": null,
+    "quote_token_symbol": null,
+    "base_token_address": null,
+    "quote_token_address": null,
+    "dex": "raydium",
+    "price_change_percentage": null,
+    "query": "wif",
+    "search_rank_by_reserve": 1,
+    "exact_match_count": 5,
+    "rejected_examples": [
+      {
+        "name": "wifout / $WIF",
+        "reason": "fuzzy_or_different_ticker"
+      },
+      {
+        "name": "swordcat / SOL",
+        "reason": "fuzzy_or_different_ticker"
+      },
+      {
+        "name": "WIFE / SOL",
+        "reason": "fuzzy_or_different_ticker"
+      },
+      {
+        "name": "swordcat / SOL",
+        "reason": "fuzzy_or_different_ticker"
+      },
+      {
+        "name": "KWIF / SOL",
+        "reason": "fuzzy_or_different_ticker"
+      },
+      {
+        "name": "WIF / SOL",
+        "address": "JTsSu7MiYCFAoMGNL9zwR2UzLCCJKNA6KpQJFQzppEx",
+        "reason": "created_inside_or_after_window",
+        "pool_created_at": "2026-11-01T02:33:36Z"
+      },
+      {
+        "name": "WIFLOAT / SOL",
+        "reason": "fuzzy_or_different_ticker"
+      },
+      {
+        "name": "WIFORANGE / SOL",
+        "reason": "fuzzy_or_different_ticker"
+      }
+    ],
+    "daily": {
+      "bars": 184,
+      "newest_ts": 1794268800,
+      "oldest_ts": 1778457600,
+      "newest_utc": "2026-11-10T00:00:00Z",
+      "oldest_utc": "2026-05-11T00:00:00Z",
+      "span_days": 183.0
+    }
+  },
+  "insufficient": false,
+  "note": "History length is a coverage filter declared before returns. It is not a performance filter. Price returns are not computed in this script.",
+  "fetched_at_utc": "2026-11-10T02:30:17Z",
+  "fetched_at_kst": "2026-11-10T11:30:17+0900"
+}

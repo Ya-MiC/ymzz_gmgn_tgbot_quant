@@ -1,0 +1,11 @@
+{
+  "url": "https://api.geckoterminal.com/api/v2/networks/solana/pools/EP2ib6dYdEeqD8MfE2ezHCxX3kP3K2eLKkirfPm5eyMx/trades?trade_volume_in_usd_greater_than=0",
+  "bytes": 265164,
+  "sha256": "18636b2d3514b78274961ed35095b2fdef8ea769ec08dc139d687e7af34bca0c",
+  "file": "data/cache/gt_trades_head_EP2ib6dY.json",
+  "fetched_at_utc": "2026-11-10T02:30:57Z",
+  "fetched_at_kst": "2026-11-10T11:30:57+0900",
+  "status": 200,
+  "role": "public_swap_scaffold_not_wallet_pnl",
+  "note": "Recent pool swaps only. Not wallet profit. Transfers are absent."
+}
